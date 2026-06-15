@@ -126,7 +126,6 @@
   <div id="toast" class="hidden fixed bottom-8 left-1/2 -translate-x-1/2 bg-zinc-900 border border-violet-400 px-8 py-4 rounded-3xl z-[99999]"></div>
 
   <script>
-    // === FIREBASE CONFIG ===
     const firebaseConfig = {
       apiKey: "AIzaSyB6d6KXpzXBS702PwR2TYdA2vWiYRP-OJ0",
       authDomain: "hyperspacechat.firebaseapp.com",
@@ -162,28 +161,41 @@
 
     async function googleSignIn() {
       initFirebase();
-      const provider = new firebase.auth.GoogleAuthProvider();
       try {
+        await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+        const provider = new firebase.auth.GoogleAuthProvider();
         const result = await auth.signInWithPopup(provider);
         currentUser = result.user;
         initializeApp();
-      } catch (e) { showToast("Google sign-in failed"); }
+      } catch (e) {
+        showToast("Google sign-in failed");
+      }
     }
 
-    function guestSignIn() {
+    async function guestSignIn() {
       const username = prompt("Choose username:", "cosmic_explorer");
       if (!username) return;
       initFirebase();
-      auth.signInAnonymously().then(() => {
-        currentUser = { uid: auth.currentUser.uid, displayName: username, photoURL: `https://picsum.photos/id/${Math.floor(Math.random()*300)}/128/128` };
+      try {
+        await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+        await auth.signInAnonymously();
+        currentUser = {
+          uid: auth.currentUser.uid,
+          displayName: username,
+          photoURL: `https://picsum.photos/id/${Math.floor(Math.random()*300)}/128/128`
+        };
+        // Save guest info locally as backup
+        localStorage.setItem('nexis_guest', JSON.stringify(currentUser));
         initializeApp();
-      });
+      } catch (e) {
+        showToast("Guest login failed");
+      }
     }
 
     function initializeApp() {
       document.getElementById('auth-modal').classList.add('hidden');
-      document.getElementById('top-username').textContent = currentUser.displayName;
-      document.getElementById('top-avatar').src = currentUser.photoURL;
+      document.getElementById('top-username').textContent = currentUser.displayName || "User";
+      document.getElementById('top-avatar').src = currentUser.photoURL || "https://picsum.photos/id/64/32/32";
 
       loadDemoServers();
       renderServers();
@@ -270,14 +282,12 @@
       const container = document.getElementById('messages');
       const div = document.createElement('div');
       div.className = "flex gap-4 message-hover p-3 rounded-2xl group";
-      let contentHTML = `<div class="text-zinc-100">${msg.content}</div>`;
+      let contentHTML = `<div class="text-zinc-100">${msg.content || ''}</div>`;
 
       if (msg.fileUrl) {
-        if (msg.fileType && msg.fileType.startsWith('image')) {
-          contentHTML = `<a href="${msg.fileUrl}" target="_blank" class="text-violet-400 underline">📸 Image: ${msg.fileName}</a>`;
-        } else {
-          contentHTML = `<a href="${msg.fileUrl}" target="_blank" class="text-violet-400 underline">📎 ${msg.fileName}</a>`;
-        }
+        contentHTML = msg.fileType && msg.fileType.startsWith('image')
+          ? `<a href="${msg.fileUrl}" target="_blank" class="text-violet-400 underline">📸 ${msg.fileName}</a>`
+          : `<a href="${msg.fileUrl}" target="_blank" class="text-violet-400 underline">📎 ${msg.fileName}</a>`;
       }
 
       div.innerHTML = `
@@ -314,11 +324,11 @@
     async function triggerFileUpload() {
       const input = document.createElement('input');
       input.type = 'file';
-      input.accept = 'image/*,video/*';
+      input.accept = 'image/*';
       input.onchange = async () => {
         const file = input.files[0];
         if (!file) return;
-        showToast("Uploading file...");
+        showToast("Uploading...");
 
         const storageRef = storage.ref(`uploads/${currentServer.id}/${currentChannel.id}/${Date.now()}-${file.name}`);
         await storageRef.put(file);
@@ -329,14 +339,12 @@
         await newMsgRef.set({
           sender: currentUser.displayName,
           avatar: currentUser.photoURL,
-          content: "",
           fileUrl: url,
           fileName: file.name,
           fileType: file.type,
           timestamp: Date.now(),
           uid: currentUser.uid
         });
-        showToast("File sent as link");
       };
       input.click();
     }
@@ -348,55 +356,62 @@
       }
     }
 
-    // === WebRTC (Basic) ===
+    // WebRTC (basic)
     async function startCall(isVideo) {
       try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: isVideo, audio: true });
         document.getElementById('call-modal').classList.remove('hidden');
         document.getElementById('call-status').textContent = isVideo ? "Video Call" : "Voice Call";
-
-        peerConnection = new RTCPeerConnection();
-        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
-        // In real app you need signaling (Firebase DB works for that)
-        showToast("Call started (demo - signaling not fully implemented)");
+        showToast("Call started (demo)");
       } catch (err) {
-        showToast("Camera/Microphone access denied");
+        showToast("Camera / Mic access denied");
       }
     }
 
     function startVoiceCall() { startCall(false); }
     function startVideoCall() { startCall(true); }
-
     function toggleMute() {
       if (localStream) localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
     }
-
     function endCall() {
       if (localStream) localStream.getTracks().forEach(t => t.stop());
-      if (peerConnection) peerConnection.close();
       document.getElementById('call-modal').classList.add('hidden');
-      showToast("Call ended");
     }
 
-    // Other functions (shortened)
+    // Other helpers
     function createNewServer() { showToast("Server creation coming soon"); }
     function toggleMembersSidebar() { document.getElementById('members-sidebar').classList.toggle('hidden'); }
-    function showProfileModal() { 
-      document.getElementById('profile-modal').classList.remove('hidden'); 
-    }
+    function showProfileModal() { document.getElementById('profile-modal').classList.remove('hidden'); }
     function closeProfileModal() { document.getElementById('profile-modal').classList.add('hidden'); }
-    function logout() { auth.signOut().then(() => location.reload()); }
+    function logout() {
+      auth.signOut().then(() => {
+        localStorage.removeItem('nexis_guest');
+        location.reload();
+      });
+    }
     function navigateToHome() { showToast("Welcome to Nexis"); }
     function switchToHomeView() { showToast("Home feed coming soon"); }
     function showSearchModal() { const q = prompt("Search:"); if(q) showToast(`Results for "${q}"`); }
     function showEmojiModal() { showToast("Emoji picker coming soon"); }
 
+    // Boot with persistence
     window.onload = () => {
       initFirebase();
+
+      // Restore guest from localStorage if needed
+      const savedGuest = localStorage.getItem('nexis_guest');
+      if (savedGuest) {
+        currentUser = JSON.parse(savedGuest);
+      }
+
       auth.onAuthStateChanged(user => {
         if (user) {
           currentUser = user;
+          if (!currentUser.displayName && savedGuest) {
+            currentUser.displayName = JSON.parse(savedGuest).displayName;
+          }
+          initializeApp();
+        } else if (savedGuest) {
           initializeApp();
         } else {
           document.getElementById('auth-modal').classList.remove('hidden');
@@ -404,7 +419,6 @@
       });
     };
 
-    // Expose
     Object.assign(window, {
       googleSignIn, guestSignIn, sendMessage, handleKeydown, triggerFileUpload,
       startVoiceCall, startVideoCall, toggleMute, endCall, showProfileModal,
