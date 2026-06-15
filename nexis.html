@@ -106,8 +106,25 @@
     <div class="glass max-w-md w-full rounded-3xl p-8 text-center">
       <div id="call-status" class="text-2xl mb-8"></div>
       <div class="flex justify-center gap-8 text-6xl mb-8">
-        <button onclick="toggleMute()" class="text-emerald-400"><i class="fa-solid fa-microphone"></i></button>
-        <button onclick="endCall()" class="text-red-500"><i class="fa-solid fa-phone-slash"></i></button>
+        <button onclick="toggleMute()" class="text-emerald-400 hover:scale-110"><i class="fa-solid fa-microphone"></i></button>
+        <button onclick="endCall()" class="text-red-500 hover:scale-110"><i class="fa-solid fa-phone-slash"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Modal -->
+  <div id="profile-modal" class="hidden fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center">
+    <div class="glass max-w-lg w-full rounded-3xl overflow-hidden">
+      <div class="h-56 bg-gradient-to-br from-violet-600 to-fuchsia-500 relative">
+        <button onclick="closeProfileModal()" class="absolute top-6 right-6 text-4xl text-white/80 hover:text-white">✕</button>
+        <div class="absolute -bottom-16 left-8">
+          <img id="profile-avatar" class="w-32 h-32 rounded-3xl border-4 border-zinc-900">
+        </div>
+      </div>
+      <div class="pt-20 px-8 pb-8">
+        <div id="profile-name" class="text-4xl font-semibold"></div>
+        <div id="profile-handle" class="text-violet-300"></div>
+        <button onclick="logout()" class="mt-12 w-full py-4 bg-rose-500 hover:bg-rose-600 rounded-2xl font-medium">Sign Out</button>
       </div>
     </div>
   </div>
@@ -142,7 +159,6 @@
     let currentChannel = null;
     let messageListener = null;
     let localStream = null;
-    let peerConnection = null;
 
     function initFirebase() {
       if (app) return;
@@ -156,7 +172,7 @@
       const toast = document.getElementById('toast');
       toast.textContent = msg;
       toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 3000);
+      setTimeout(() => toast.classList.add('hidden'), 2800);
     }
 
     async function googleSignIn() {
@@ -167,9 +183,7 @@
         const result = await auth.signInWithPopup(provider);
         currentUser = result.user;
         initializeApp();
-      } catch (e) {
-        showToast("Google sign-in failed");
-      }
+      } catch (e) { showToast("Sign in failed"); }
     }
 
     async function guestSignIn() {
@@ -184,18 +198,15 @@
           displayName: username,
           photoURL: `https://picsum.photos/id/${Math.floor(Math.random()*300)}/128/128`
         };
-        // Save guest info locally as backup
         localStorage.setItem('nexis_guest', JSON.stringify(currentUser));
         initializeApp();
-      } catch (e) {
-        showToast("Guest login failed");
-      }
+      } catch (e) { showToast("Guest login failed"); }
     }
 
     function initializeApp() {
       document.getElementById('auth-modal').classList.add('hidden');
-      document.getElementById('top-username').textContent = currentUser.displayName || "User";
-      document.getElementById('top-avatar').src = currentUser.photoURL || "https://picsum.photos/id/64/32/32";
+      document.getElementById('top-username').textContent = currentUser.displayName;
+      document.getElementById('top-avatar').src = currentUser.photoURL;
 
       loadDemoServers();
       renderServers();
@@ -261,7 +272,7 @@
 
     function loadMessages() {
       const messagesDiv = document.getElementById('messages');
-      messagesDiv.innerHTML = '<div class="text-center text-zinc-400 py-10">Loading messages...</div>';
+      messagesDiv.innerHTML = '<div class="text-center text-zinc-400 py-10">Loading...</div>';
 
       const path = `messages/${currentServer.id}/${currentChannel.id}`;
       messageListener = db.ref(path).orderByChild('timestamp').limitToLast(100);
@@ -282,12 +293,10 @@
       const container = document.getElementById('messages');
       const div = document.createElement('div');
       div.className = "flex gap-4 message-hover p-3 rounded-2xl group";
-      let contentHTML = `<div class="text-zinc-100">${msg.content || ''}</div>`;
+      let contentHTML = msg.content ? `<div class="text-zinc-100">${msg.content}</div>` : '';
 
       if (msg.fileUrl) {
-        contentHTML = msg.fileType && msg.fileType.startsWith('image')
-          ? `<a href="${msg.fileUrl}" target="_blank" class="text-violet-400 underline">📸 ${msg.fileName}</a>`
-          : `<a href="${msg.fileUrl}" target="_blank" class="text-violet-400 underline">📎 ${msg.fileName}</a>`;
+        contentHTML = `<a href="${msg.fileUrl}" target="_blank" class="text-violet-400 underline break-all">${msg.fileType?.startsWith('image') ? '📸' : '📎'} ${msg.fileName}</a>`;
       }
 
       div.innerHTML = `
@@ -325,11 +334,10 @@
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = 'image/*';
-      input.onchange = async () => {
-        const file = input.files[0];
+      input.onchange = async e => {
+        const file = e.target.files[0];
         if (!file) return;
-        showToast("Uploading...");
-
+        showToast("Uploading file...");
         const storageRef = storage.ref(`uploads/${currentServer.id}/${currentChannel.id}/${Date.now()}-${file.name}`);
         await storageRef.put(file);
         const url = await storageRef.getDownloadURL();
@@ -345,6 +353,7 @@
           timestamp: Date.now(),
           uid: currentUser.uid
         });
+        showToast("File sent as link");
       };
       input.click();
     }
@@ -356,16 +365,13 @@
       }
     }
 
-    // WebRTC (basic)
+    // WebRTC basic
     async function startCall(isVideo) {
       try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: isVideo, audio: true });
         document.getElementById('call-modal').classList.remove('hidden');
-        document.getElementById('call-status').textContent = isVideo ? "Video Call" : "Voice Call";
-        showToast("Call started (demo)");
-      } catch (err) {
-        showToast("Camera / Mic access denied");
-      }
+        document.getElementById('call-status').textContent = isVideo ? "📹 Video Call" : "📞 Voice Call";
+      } catch (err) { showToast("Camera/Mic permission denied"); }
     }
 
     function startVoiceCall() { startCall(false); }
@@ -378,40 +384,42 @@
       document.getElementById('call-modal').classList.add('hidden');
     }
 
-    // Other helpers
     function createNewServer() { showToast("Server creation coming soon"); }
     function toggleMembersSidebar() { document.getElementById('members-sidebar').classList.toggle('hidden'); }
-    function showProfileModal() { document.getElementById('profile-modal').classList.remove('hidden'); }
-    function closeProfileModal() { document.getElementById('profile-modal').classList.add('hidden'); }
-    function logout() {
-      auth.signOut().then(() => {
-        localStorage.removeItem('nexis_guest');
-        location.reload();
-      });
+    function showProfileModal() {
+      document.getElementById('profile-modal').classList.remove('hidden');
+      document.getElementById('profile-name').textContent = currentUser.displayName;
+      document.getElementById('profile-avatar').src = currentUser.photoURL;
+      document.getElementById('profile-handle').textContent = `@${currentUser.uid.slice(0,8)}`;
     }
+    function closeProfileModal() { document.getElementById('profile-modal').classList.add('hidden'); }
+
+    function logout() {
+      if (confirm("Sign out?")) {
+        auth.signOut().then(() => {
+          localStorage.removeItem('nexis_guest');
+          location.reload();
+        });
+      }
+    }
+
     function navigateToHome() { showToast("Welcome to Nexis"); }
     function switchToHomeView() { showToast("Home feed coming soon"); }
-    function showSearchModal() { const q = prompt("Search:"); if(q) showToast(`Results for "${q}"`); }
+    function showSearchModal() { const q = prompt("Search Nexis"); if(q) showToast(`Results for "${q}"`); }
     function showEmojiModal() { showToast("Emoji picker coming soon"); }
 
-    // Boot with persistence
+    // Boot
     window.onload = () => {
       initFirebase();
-
-      // Restore guest from localStorage if needed
       const savedGuest = localStorage.getItem('nexis_guest');
-      if (savedGuest) {
-        currentUser = JSON.parse(savedGuest);
-      }
 
       auth.onAuthStateChanged(user => {
         if (user) {
           currentUser = user;
-          if (!currentUser.displayName && savedGuest) {
-            currentUser.displayName = JSON.parse(savedGuest).displayName;
-          }
+          if (!currentUser.displayName && savedGuest) currentUser.displayName = JSON.parse(savedGuest).displayName;
           initializeApp();
         } else if (savedGuest) {
+          currentUser = JSON.parse(savedGuest);
           initializeApp();
         } else {
           document.getElementById('auth-modal').classList.remove('hidden');
