@@ -1,592 +1,416 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexis</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
-        
-        :root {
-            --primary: 139 92 246;
-        }
-        
-        body {
-            font-family: 'Inter', system_ui, sans-serif;
-        }
-        
-        .logo-font {
-            font-family: 'Space Grotesk', sans-serif;
-        }
-
-        .glass {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-        }
-
-        .chat-bg {
-            background: linear-gradient(180deg, #0f0f17 0%, #1a1a2e 100%);
-        }
-
-        .message-hover:hover {
-            background: rgba(139, 92, 246, 0.1);
-        }
-
-        .custom-scroll::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        
-        .custom-scroll::-webkit-scrollbar-thumb {
-            background: rgb(139 92 246);
-            border-radius: 20px;
-        }
-
-        .modal {
-            animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        
-        @keyframes modalPop {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .logo-font { font-family: 'Space Grotesk', sans-serif; }
+    .glass { background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); }
+    .chat-bg { background: linear-gradient(180deg, #0a0a0f 0%, #12121a 100%); }
+    .server-icon { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    .server-icon:hover { border-radius: 40% !important; transform: scale(1.08); }
+    .server-icon-active { border-radius: 40% !important; box-shadow: 0 0 0 4px rgb(139 92 246 / 0.6); }
+    .message-hover:hover { background: rgba(139, 92, 246, 0.08); }
+    .custom-scroll::-webkit-scrollbar { width: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: rgb(139 92 246); border-radius: 20px; }
+  </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100 overflow-hidden h-screen flex flex-col">
-    <div class="flex flex-col h-full">
-        <!-- TOP BAR -->
-        <div class="h-12 bg-zinc-900 border-b border-zinc-800 flex items-center px-4 z-50">
-            <div class="flex items-center gap-x-4">
-                <div class="logo-font text-3xl font-bold tracking-tighter text-white flex items-center cursor-pointer" onclick="navigateToHome()">
-                    <span class="text-violet-400">N</span>exis
-                </div>
-            </div>
-            
-            <div class="flex-1 max-w-md mx-8">
-                <div onclick="showSearchModal()" class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-3xl px-5 py-2 text-sm flex items-center gap-x-3 cursor-pointer">
-                    <i class="fa-solid fa-magnifying-glass text-zinc-400"></i>
-                    <span class="text-zinc-400">Search Nexis</span>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-x-6">
-                <div onclick="toggleNotifications()" class="cursor-pointer relative">
-                    <i class="fa-solid fa-bell text-zinc-300 hover:text-white"></i>
-                    <div id="notif-badge" class="absolute -top-1 -right-1 bg-red-500 text-[10px] w-4 h-4 rounded-full flex items-center justify-center">2</div>
-                </div>
-                <div onclick="showProfileModal()" class="flex items-center gap-x-2 cursor-pointer">
-                    <img id="top-avatar" src="https://picsum.photos/id/64/32/32" class="w-8 h-8 rounded-2xl object-cover">
-                    <span id="top-username" class="text-sm font-medium">Guest</span>
-                </div>
-            </div>
-        </div>
+<body class="bg-zinc-950 text-zinc-100 h-screen flex flex-col overflow-hidden">
 
-        <div class="flex flex-1 overflow-hidden">
-            <!-- SERVERS -->
-            <div class="w-20 bg-zinc-950 border-r border-zinc-800 flex flex-col items-center py-4 gap-y-3 overflow-y-auto custom-scroll">
-                <div onclick="switchToHomeView()" class="w-14 h-14 bg-violet-600 rounded-3xl flex items-center justify-center text-3xl cursor-pointer mb-4">🏠</div>
-                <div id="servers-list" class="flex flex-col gap-y-3"></div>
-                <div onclick="createNewServer()" class="w-14 h-14 bg-zinc-800 hover:bg-emerald-500 rounded-3xl flex items-center justify-center text-4xl cursor-pointer text-emerald-400 transition-all">
-                    <i class="fa-solid fa-plus"></i>
-                </div>
-            </div>
+  <!-- Top Bar -->
+  <div class="h-12 bg-zinc-900 border-b border-zinc-800 flex items-center px-4 z-50">
+    <div onclick="navigateToHome()" class="logo-font text-3xl font-bold tracking-tighter text-white flex items-center cursor-pointer">
+      <span class="text-violet-400">N</span>exis
+    </div>
+    <div class="flex-1 max-w-md mx-8">
+      <div onclick="showSearchModal()" class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-3xl px-5 py-2 text-sm flex items-center gap-x-3 cursor-pointer">
+        <i class="fa-solid fa-magnifying-glass text-zinc-400"></i>
+        <span class="text-zinc-400">Search • Ctrl K</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-x-6">
+      <button onclick="startVoiceCall()" class="text-emerald-400 hover:text-emerald-300"><i class="fa-solid fa-phone"></i></button>
+      <button onclick="startVideoCall()" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-video"></i></button>
+      <div onclick="showProfileModal()" class="flex items-center gap-x-3 cursor-pointer">
+        <img id="top-avatar" src="https://picsum.photos/id/64/32/32" class="w-8 h-8 rounded-2xl">
+        <span id="top-username" class="text-sm font-medium"></span>
+      </div>
+    </div>
+  </div>
 
-            <!-- CHANNELS -->
-            <div class="w-72 bg-zinc-900 border-r border-zinc-800 flex flex-col">
-                <div id="server-header" onclick="showServerMenu()" class="h-14 border-b border-zinc-700 px-4 flex items-center justify-between hover:bg-zinc-800 cursor-pointer hidden">
-                    <div class="flex items-center gap-x-3">
-                        <div id="server-icon" class="text-3xl"></div>
-                        <div id="server-name" class="font-semibold"></div>
-                    </div>
-                </div>
-                
-                <div id="channels-list" class="flex-1 overflow-y-auto custom-scroll px-3 py-4"></div>
-                
-                <div class="p-4 border-t border-zinc-700">
-                    <div onclick="showProfileModal()" class="flex items-center gap-x-3 hover:bg-zinc-800 p-3 rounded-2xl cursor-pointer">
-                        <img id="sidebar-avatar" src="https://picsum.photos/id/64/40/40" class="w-10 h-10 rounded-2xl">
-                        <div id="sidebar-username" class="font-medium"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MAIN CHAT -->
-            <div class="flex-1 flex flex-col">
-                <div id="chat-header" class="h-14 border-b border-zinc-700 px-6 flex items-center bg-zinc-900 hidden">
-                    <div class="flex items-center gap-x-4 flex-1">
-                        <span id="channel-symbol" class="text-2xl">#</span>
-                        <div>
-                            <div id="channel-name-header" class="font-semibold"></div>
-                            <div id="channel-desc-header" class="text-xs text-zinc-400"></div>
-                        </div>
-                    </div>
-                    <div class="flex gap-x-6">
-                        <i onclick="toggleMembersSidebar()" class="fa-solid fa-users cursor-pointer hover:text-white"></i>
-                    </div>
-                </div>
-                
-                <div id="messages" class="flex-1 overflow-y-auto custom-scroll p-6 chat-bg"></div>
-                
-                <div id="chat-input-container" class="p-4 border-t border-zinc-700 bg-zinc-900 hidden">
-                    <div id="reply-ui" class="hidden mb-2 px-4 py-2 bg-zinc-800 rounded-2xl text-sm flex items-center justify-between">
-                        <span>Replying to <span id="reply-username" class="font-medium text-violet-300"></span></span>
-                        <button onclick="cancelReply()" class="text-zinc-400">✕</button>
-                    </div>
-                    <div class="flex items-center gap-x-2 glass border border-zinc-600 rounded-3xl p-2">
-                        <button onclick="triggerUpload()" class="px-4 py-3 text-violet-400"><i class="fa-solid fa-paperclip"></i></button>
-                        <textarea id="chat-input" rows="1" class="flex-1 bg-transparent px-4 py-3 outline-none max-h-52" placeholder="Message..." onkeydown="handleMessageKeydown(event)"></textarea>
-                        <button onclick="showEmojiModal()" class="px-4 py-3 text-violet-400"><i class="fa-solid fa-face-smile"></i></button>
-                        <button onclick="sendChatMessage()" class="bg-violet-600 px-5 py-3 rounded-2xl"><i class="fa-solid fa-paper-plane"></i></button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MEMBERS -->
-            <div id="members-sidebar" class="w-72 bg-zinc-900 border-l border-zinc-700 flex-col hidden lg:flex">
-                <div class="p-4 border-b border-zinc-700 text-sm font-medium">MEMBERS</div>
-                <div id="members-content" class="flex-1 overflow-y-auto custom-scroll p-3"></div>
-            </div>
-        </div>
+  <div class="flex flex-1 overflow-hidden">
+    <!-- Servers -->
+    <div class="w-20 bg-zinc-950 border-r border-zinc-800 flex flex-col items-center py-4 gap-y-3 overflow-y-auto custom-scroll">
+      <div onclick="switchToHomeView()" class="w-14 h-14 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-3xl flex items-center justify-center text-3xl cursor-pointer mb-4 server-icon">🪐</div>
+      <div id="servers-list" class="flex flex-col gap-y-3"></div>
+      <div onclick="createNewServer()" class="w-14 h-14 bg-zinc-800 hover:bg-emerald-500 rounded-3xl flex items-center justify-center text-4xl cursor-pointer text-emerald-400 server-icon">
+        <i class="fa-solid fa-plus"></i>
+      </div>
     </div>
 
-    <!-- AUTH MODAL -->
-    <div id="auth-modal" class="hidden fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center">
-        <div class="glass w-full max-w-md rounded-3xl p-8">
-            <div class="logo-font text-5xl text-center mb-8">Nexis</div>
-            
-            <button onclick="googleSignIn()" class="w-full py-4 bg-white text-zinc-900 rounded-2xl flex items-center justify-center gap-x-3 mb-6">
-                <i class="fa-brands fa-google"></i> Continue with Google
-            </button>
-            
-            <div class="flex gap-x-3">
-                <button onclick="switchToLogin()" class="flex-1 py-4 border border-zinc-600 rounded-2xl">Log In</button>
-                <button onclick="switchToRegister()" class="flex-1 py-4 bg-violet-600 rounded-2xl">Register</button>
-            </div>
-            
-            <div onclick="guestSignIn()" class="text-center mt-8 text-sm text-violet-300 cursor-pointer">Continue as Guest</div>
+    <!-- Channels -->
+    <div class="w-72 bg-zinc-900 border-r border-zinc-800 flex flex-col">
+      <div id="server-header" class="h-14 border-b border-zinc-700 px-4 flex items-center justify-between hover:bg-zinc-800 cursor-pointer hidden">
+        <div class="flex items-center gap-x-3">
+          <div id="server-icon" class="text-3xl"></div>
+          <div id="server-name" class="font-semibold"></div>
         </div>
+      </div>
+      <div id="channels-list" class="flex-1 overflow-y-auto custom-scroll px-3 py-4"></div>
     </div>
 
-    <!-- GUEST USERNAME -->
-    <div id="guest-modal" class="hidden fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center">
-        <div class="glass w-full max-w-md rounded-3xl p-8">
-            <h2 class="text-3xl font-semibold mb-2">Choose Username</h2>
-            <input id="guest-username" class="w-full bg-zinc-800 border border-zinc-600 rounded-2xl px-6 py-4 mb-6" placeholder="username" maxlength="20">
-            <button onclick="confirmGuest()" class="w-full py-4 bg-violet-600 rounded-2xl">Join as Guest</button>
+    <!-- Main Chat -->
+    <div class="flex-1 flex flex-col">
+      <div id="chat-header" class="h-14 border-b border-zinc-700 px-6 flex items-center bg-zinc-900 hidden">
+        <div class="flex-1 flex items-center gap-x-4">
+          <span id="channel-symbol" class="text-2xl text-zinc-400">#</span>
+          <div>
+            <div id="channel-name-header" class="font-semibold"></div>
+            <div id="channel-desc-header" class="text-xs text-zinc-400"></div>
+          </div>
         </div>
-    </div>
+        <i onclick="toggleMembersSidebar()" class="fa-solid fa-users cursor-pointer hover:text-white text-xl"></i>
+      </div>
 
-    <!-- PROFILE MODAL -->
-    <div id="profile-modal" class="hidden fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center">
-        <div class="glass max-w-lg w-full rounded-3xl overflow-hidden">
-            <div class="h-52 bg-gradient-to-br from-violet-500 to-blue-500 relative">
-                <button onclick="closeProfileModal()" class="absolute top-6 right-6 text-3xl">✕</button>
-                <div class="absolute -bottom-16 left-8">
-                    <img id="profile-avatar" src="https://picsum.photos/id/64/128/128" class="w-32 h-32 rounded-3xl border-4 border-zinc-900">
-                </div>
-            </div>
-            <div class="pt-20 px-8 pb-8">
-                <div id="profile-display" class="text-3xl font-semibold"></div>
-                <div id="profile-handle" class="text-violet-300"></div>
-                <button onclick="logout()" class="mt-12 w-full py-4 bg-rose-500/10 text-rose-400 rounded-2xl">Logout</button>
-            </div>
+      <div id="messages" class="flex-1 overflow-y-auto custom-scroll p-6 chat-bg space-y-6"></div>
+
+      <div id="chat-input-container" class="p-4 border-t border-zinc-700 bg-zinc-900 hidden">
+        <div class="flex gap-x-2 glass border border-zinc-700 rounded-3xl p-2">
+          <button onclick="triggerFileUpload()" class="px-4 py-3 text-violet-400"><i class="fa-solid fa-paperclip"></i></button>
+          <textarea id="chat-input" rows="1" class="flex-1 bg-transparent px-5 py-3 outline-none max-h-52" placeholder="Message..." onkeydown="handleKeydown(event)"></textarea>
+          <button onclick="showEmojiModal()" class="px-4 py-3 text-violet-400"><i class="fa-solid fa-face-smile"></i></button>
+          <button onclick="sendMessage()" class="bg-violet-600 px-6 py-3 rounded-2xl"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
+      </div>
     </div>
 
-    <!-- EMOJI MODAL -->
-    <div id="emoji-modal" class="hidden fixed bottom-28 left-1/2 -translate-x-1/2 glass border border-zinc-600 rounded-3xl p-6 w-96 z-[9999]">
-        <div id="emoji-list" class="grid grid-cols-8 gap-4 text-4xl"></div>
+    <!-- Members -->
+    <div id="members-sidebar" class="w-72 bg-zinc-900 border-l border-zinc-700 hidden lg:flex flex-col">
+      <div class="p-4 border-b border-zinc-700 text-xs font-medium text-zinc-400">MEMBERS</div>
+      <div id="members-list" class="flex-1 overflow-y-auto custom-scroll p-3"></div>
     </div>
+  </div>
 
-    <!-- TOAST -->
-    <div id="toast" class="hidden fixed bottom-8 left-1/2 -translate-x-1/2 bg-zinc-900 border border-violet-400 px-8 py-4 rounded-3xl z-[99999]"></div>
+  <!-- Call Modal -->
+  <div id="call-modal" class="hidden fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center">
+    <div class="glass max-w-md w-full rounded-3xl p-8 text-center">
+      <div id="call-status" class="text-2xl mb-8"></div>
+      <div class="flex justify-center gap-8 text-6xl mb-8">
+        <button onclick="toggleMute()" class="text-emerald-400"><i class="fa-solid fa-microphone"></i></button>
+        <button onclick="endCall()" class="text-red-500"><i class="fa-solid fa-phone-slash"></i></button>
+      </div>
+    </div>
+  </div>
 
-    <script>
-        const firebaseConfig = {
-          apiKey: "AIzaSyCr2mG-lVDHFwW4fTAx7_5AwZX2jJ8myrw",
-          authDomain: "hyperspace-r.firebaseapp.com",
-          databaseURL: "https://hyperspace-r-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "hyperspace-r",
-          storageBucket: "hyperspace-r.firebasestorage.app",
-          messagingSenderId: "1050495683444",
-          appId: "1:1050495683444:web:4a3c2b294542cb8d313a21",
-          measurementId: "G-XWKMZTBQZY"
-        };
+  <!-- Auth Modal -->
+  <div id="auth-modal" class="hidden fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center">
+    <div class="glass max-w-md w-full rounded-3xl p-10 text-center">
+      <div class="logo-font text-6xl mb-10">Nexis</div>
+      <button onclick="googleSignIn()" class="w-full py-5 bg-white text-black rounded-2xl font-medium mb-4 flex items-center justify-center gap-3">
+        <i class="fa-brands fa-google"></i> Continue with Google
+      </button>
+      <button onclick="guestSignIn()" class="w-full py-5 border border-zinc-600 hover:bg-zinc-800 rounded-2xl">Continue as Guest</button>
+    </div>
+  </div>
 
-        let firebaseApp, auth, database, storage;
-        let currentUser = null;
-        let isGuest = false;
-        let currentServer = null;
-        let currentChannel = null;
-        let userServers = [];
-        let messagesDB = {};
+  <div id="toast" class="hidden fixed bottom-8 left-1/2 -translate-x-1/2 bg-zinc-900 border border-violet-400 px-8 py-4 rounded-3xl z-[99999]"></div>
 
-        function initializeFirebase() {
-            if (firebaseApp) return;
-            firebaseApp = firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth();
-            database = firebase.database();
-            storage = firebase.storage();
+  <script>
+    // === FIREBASE CONFIG ===
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6d6KXpzXBS702PwR2TYdA2vWiYRP-OJ0",
+      authDomain: "hyperspacechat.firebaseapp.com",
+      databaseURL: "https://hyperspacechat-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "hyperspacechat",
+      storageBucket: "hyperspacechat.firebasestorage.app",
+      messagingSenderId: "620090648601",
+      appId: "1:620090648601:web:06826975596fceb32aa288"
+    };
+
+    let app, auth, db, storage;
+    let currentUser = null;
+    let currentServer = null;
+    let currentChannel = null;
+    let messageListener = null;
+    let localStream = null;
+    let peerConnection = null;
+
+    function initFirebase() {
+      if (app) return;
+      app = firebase.initializeApp(firebaseConfig);
+      auth = firebase.auth();
+      db = firebase.database();
+      storage = firebase.storage();
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+
+    async function googleSignIn() {
+      initFirebase();
+      const provider = new firebase.auth.GoogleAuthProvider();
+      try {
+        const result = await auth.signInWithPopup(provider);
+        currentUser = result.user;
+        initializeApp();
+      } catch (e) { showToast("Google sign-in failed"); }
+    }
+
+    function guestSignIn() {
+      const username = prompt("Choose username:", "cosmic_explorer");
+      if (!username) return;
+      initFirebase();
+      auth.signInAnonymously().then(() => {
+        currentUser = { uid: auth.currentUser.uid, displayName: username, photoURL: `https://picsum.photos/id/${Math.floor(Math.random()*300)}/128/128` };
+        initializeApp();
+      });
+    }
+
+    function initializeApp() {
+      document.getElementById('auth-modal').classList.add('hidden');
+      document.getElementById('top-username').textContent = currentUser.displayName;
+      document.getElementById('top-avatar').src = currentUser.photoURL;
+
+      loadDemoServers();
+      renderServers();
+      if (userServers.length > 0) selectServer(userServers[0]);
+    }
+
+    let userServers = [];
+    function loadDemoServers() {
+      userServers = [{
+        id: "global-nexus",
+        name: "The Nexus",
+        icon: "🌌",
+        channels: [
+          {id: "general", name: "general", topic: "Welcome to Nexis"},
+          {id: "off-topic", name: "off-topic", topic: "Anything goes"}
+        ]
+      }];
+    }
+
+    function renderServers() {
+      const container = document.getElementById('servers-list');
+      container.innerHTML = '';
+      userServers.forEach(s => {
+        const div = document.createElement('div');
+        div.className = `w-14 h-14 flex items-center justify-center text-4xl cursor-pointer server-icon bg-zinc-800 ${currentServer?.id === s.id ? 'server-icon-active' : ''}`;
+        div.textContent = s.icon;
+        div.onclick = () => selectServer(s);
+        container.appendChild(div);
+      });
+    }
+
+    function selectServer(server) {
+      currentServer = server;
+      renderServers();
+      document.getElementById('server-header').classList.remove('hidden');
+      document.getElementById('server-icon').textContent = server.icon;
+      document.getElementById('server-name').textContent = server.name;
+      renderChannels();
+    }
+
+    function renderChannels() {
+      const container = document.getElementById('channels-list');
+      container.innerHTML = '';
+      currentServer.channels.forEach(ch => {
+        const div = document.createElement('div');
+        div.className = `px-4 py-3 rounded-2xl cursor-pointer flex items-center gap-3 ${currentChannel?.id === ch.id ? 'bg-violet-600 text-white' : 'hover:bg-zinc-800'}`;
+        div.innerHTML = `<span class="text-xl">#</span><span>${ch.name}</span>`;
+        div.onclick = () => selectChannel(ch);
+        container.appendChild(div);
+      });
+    }
+
+    function selectChannel(channel) {
+      if (messageListener) messageListener.off();
+      currentChannel = channel;
+      renderChannels();
+      document.getElementById('chat-header').classList.remove('hidden');
+      document.getElementById('chat-input-container').classList.remove('hidden');
+      document.getElementById('channel-name-header').textContent = channel.name;
+      document.getElementById('channel-desc-header').textContent = channel.topic || "";
+      loadMessages();
+    }
+
+    function loadMessages() {
+      const messagesDiv = document.getElementById('messages');
+      messagesDiv.innerHTML = '<div class="text-center text-zinc-400 py-10">Loading messages...</div>';
+
+      const path = `messages/${currentServer.id}/${currentChannel.id}`;
+      messageListener = db.ref(path).orderByChild('timestamp').limitToLast(100);
+
+      messageListener.on('value', snapshot => {
+        messagesDiv.innerHTML = '';
+        const msgs = snapshot.val() || {};
+        if (Object.keys(msgs).length === 0) {
+          messagesDiv.innerHTML = `<div class="text-center py-20 text-zinc-400">This is the beginning of #${currentChannel.name}</div>`;
+          return;
         }
+        Object.values(msgs).forEach(msg => renderSingleMessage(msg));
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      });
+    }
 
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            if (toast) {
-                toast.textContent = message;
-                toast.classList.remove('hidden');
-                setTimeout(() => {
-                    if (toast) toast.classList.add('hidden');
-                }, 2800);
-            }
+    function renderSingleMessage(msg) {
+      const container = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.className = "flex gap-4 message-hover p-3 rounded-2xl group";
+      let contentHTML = `<div class="text-zinc-100">${msg.content}</div>`;
+
+      if (msg.fileUrl) {
+        if (msg.fileType && msg.fileType.startsWith('image')) {
+          contentHTML = `<a href="${msg.fileUrl}" target="_blank" class="text-violet-400 underline">📸 Image: ${msg.fileName}</a>`;
+        } else {
+          contentHTML = `<a href="${msg.fileUrl}" target="_blank" class="text-violet-400 underline">📎 ${msg.fileName}</a>`;
         }
+      }
 
-        function guestSignIn() {
-            const authModal = document.getElementById('auth-modal');
-            if (authModal) authModal.classList.add('hidden');
-            const guestModal = document.getElementById('guest-modal');
-            if (guestModal) guestModal.classList.remove('hidden');
-            const guestInput = document.getElementById('guest-username');
-            if (guestInput) guestInput.focus();
-        }
+      div.innerHTML = `
+        <img src="${msg.avatar || 'https://picsum.photos/id/64/40/40'}" class="w-10 h-10 rounded-2xl">
+        <div class="flex-1">
+          <div class="flex items-baseline gap-3">
+            <span class="font-semibold">${msg.sender}</span>
+            <span class="text-xs text-zinc-500">${new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+          </div>
+          ${contentHTML}
+        </div>
+      `;
+      container.appendChild(div);
+    }
 
-        function confirmGuest() {
-            let username = document.getElementById('guest-username').value.trim();
-            if (!username) username = "guest" + Math.floor(Math.random() * 10000);
-            
-            isGuest = true;
-            currentUser = {
-                uid: "guest-" + Date.now(),
-                displayName: username,
-                username: username,
-                avatar: "https://picsum.photos/id/64/128/128"
-            };
-            
-            document.getElementById('guest-modal').classList.add('hidden');
-            initializeApp();
-        }
+    async function sendMessage() {
+      if (!currentUser || !currentChannel) return;
+      const input = document.getElementById('chat-input');
+      const content = input.value.trim();
+      if (!content) return;
 
-        function googleSignIn() {
-            showToast("Google Sign In (Demo)");
-            setTimeout(() => {
-                currentUser = { uid: "google-demo", displayName: "Google User", username: "googleuser" };
-                initializeApp();
-            }, 600);
-        }
+      const path = `messages/${currentServer.id}/${currentChannel.id}`;
+      const newMsgRef = db.ref(path).push();
+      await newMsgRef.set({
+        sender: currentUser.displayName,
+        avatar: currentUser.photoURL,
+        content: content,
+        timestamp: Date.now(),
+        uid: currentUser.uid
+      });
+      input.value = '';
+    }
 
-        function switchToLogin() {
-            showToast("Login form active");
-        }
+    async function triggerFileUpload() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*,video/*';
+      input.onchange = async () => {
+        const file = input.files[0];
+        if (!file) return;
+        showToast("Uploading file...");
 
-        function switchToRegister() {
-            showToast("Register form active");
-        }
+        const storageRef = storage.ref(`uploads/${currentServer.id}/${currentChannel.id}/${Date.now()}-${file.name}`);
+        await storageRef.put(file);
+        const url = await storageRef.getDownloadURL();
 
-        function initializeApp() {
-            initializeFirebase();
-            const topUsername = document.getElementById('top-username');
-            if (topUsername) topUsername.textContent = currentUser.displayName;
-            const sidebarUsername = document.getElementById('sidebar-username');
-            if (sidebarUsername) sidebarUsername.textContent = currentUser.displayName;
-            showToast("Welcome to Nexis");
-            createDemoServers();
-        }
-
-        function createDemoServers() {
-            userServers = [
-                { id: "s1", name: "My Community", icon: "🌌", channels: [{id: "c1", name: "general", topic: "Welcome"}] }
-            ];
-            renderServers();
-            if (userServers.length > 0) {
-                selectServer(userServers[0]);
-            }
-        }
-
-        function renderServers() {
-            const container = document.getElementById('servers-list');
-            if (!container) return;
-            container.innerHTML = '';
-            userServers.forEach(server => {
-                const el = document.createElement('div');
-                el.className = `w-14 h-14 rounded-3xl flex items-center justify-center text-4xl cursor-pointer transition-all ${currentServer && currentServer.id === server.id ? 'ring-4 ring-violet-400' : 'bg-zinc-800'}`;
-                el.textContent = server.icon;
-                el.onclick = () => selectServer(server);
-                container.appendChild(el);
-            });
-        }
-
-        function selectServer(server) {
-            currentServer = server;
-            renderServers();
-            const serverIcon = document.getElementById('server-icon');
-            const serverName = document.getElementById('server-name');
-            if (serverIcon) serverIcon.textContent = server.icon;
-            if (serverName) serverName.textContent = server.name;
-            const serverHeader = document.getElementById('server-header');
-            if (serverHeader) serverHeader.classList.remove('hidden');
-            renderChannels();
-        }
-
-        function renderChannels() {
-            const container = document.getElementById('channels-list');
-            if (!container) return;
-            container.innerHTML = '';
-            if (!currentServer || !currentServer.channels) return;
-            currentServer.channels.forEach(channel => {
-                const div = document.createElement('div');
-                div.className = `px-4 py-3 rounded-2xl cursor-pointer flex items-center gap-x-3 ${currentChannel && currentChannel.id === channel.id ? 'bg-violet-600 text-white' : 'hover:bg-zinc-800'}`;
-                div.innerHTML = `<span class="text-xl">#</span><span class="font-medium">${channel.name}</span>`;
-                div.onclick = () => selectChannel(channel);
-                container.appendChild(div);
-            });
-        }
-
-        function selectChannel(channel) {
-            currentChannel = channel;
-            renderChannels();
-            
-            const chatHeader = document.getElementById('chat-header');
-            if (chatHeader) chatHeader.classList.remove('hidden');
-            const chatInputContainer = document.getElementById('chat-input-container');
-            if (chatInputContainer) chatInputContainer.classList.remove('hidden');
-            const messagesContainer = document.getElementById('messages');
-            if (messagesContainer) messagesContainer.classList.remove('hidden');
-            
-            const channelNameHeader = document.getElementById('channel-name-header');
-            if (channelNameHeader) channelNameHeader.textContent = channel.name;
-            const channelDescHeader = document.getElementById('channel-desc-header');
-            if (channelDescHeader) channelDescHeader.textContent = channel.topic || "General chat";
-            
-            loadMessagesForChannel();
-        }
-
-        function loadMessagesForChannel() {
-            const container = document.getElementById('messages');
-            if (!container) return;
-            container.innerHTML = `<div class="text-center py-12 text-zinc-400">This is the start of #${currentChannel ? currentChannel.name : 'general'}</div>`;
-            
-            const key = currentServer ? currentServer.id + '-' + currentChannel.id : 'default';
-            if (!messagesDB[key]) {
-                messagesDB[key] = [];
-            }
-            
-            messagesDB[key].forEach(msg => renderMessage(msg));
-        }
-
-        function renderMessage(msg) {
-            const container = document.getElementById('messages');
-            if (!container) return;
-            const msgHTML = `
-                <div class="flex gap-x-4 message-hover p-3 rounded-2xl group">
-                    <img src="${msg.avatar || 'https://picsum.photos/id/64/40/40'}" class="w-10 h-10 rounded-2xl">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-x-3">
-                            <span class="font-semibold">${msg.sender}</span>
-                            <span class="text-xs text-zinc-500">${msg.timestamp}</span>
-                        </div>
-                        <div class="text-zinc-100">${msg.content}</div>
-                        <div class="flex gap-x-6 mt-2 opacity-0 group-hover:opacity-100 transition-all">
-                            <span onclick="addReactionToMessage(this)" class="cursor-pointer text-sm">👍</span>
-                            <span onclick="replyToMessage('${msg.sender}')" class="cursor-pointer text-sm text-violet-300">Reply</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-            container.innerHTML += msgHTML;
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function sendChatMessage() {
-            if (!currentUser || !currentChannel) {
-                showToast("Please log in and select a channel");
-                return;
-            }
-            
-            const input = document.getElementById('chat-input');
-            const content = input.value.trim();
-            if (!content) return;
-            
-            const key = currentServer.id + '-' + currentChannel.id;
-            if (!messagesDB[key]) messagesDB[key] = [];
-            
-            const message = {
-                sender: currentUser.displayName,
-                avatar: currentUser.avatar || "https://picsum.photos/id/64/40/40",
-                content: content,
-                timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}),
-                id: Date.now()
-            };
-            
-            messagesDB[key].push(message);
-            renderMessage(message);
-            input.value = '';
-        }
-
-        function handleMessageKeydown(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendChatMessage();
-            }
-        }
-
-        function addReactionToMessage(el) {
-            el.innerHTML = '👍 1';
-            showToast("Reaction added");
-        }
-
-        function replyToMessage(username) {
-            const replyUi = document.getElementById('reply-ui');
-            if (replyUi) replyUi.classList.remove('hidden');
-            const replyUsername = document.getElementById('reply-username');
-            if (replyUsername) replyUsername.textContent = username;
-            const chatInput = document.getElementById('chat-input');
-            if (chatInput) chatInput.focus();
-        }
-
-        function cancelReply() {
-            const replyUi = document.getElementById('reply-ui');
-            if (replyUi) replyUi.classList.add('hidden');
-        }
-
-        function triggerUpload() {
-            showToast("File upload triggered");
-        }
-
-        function showEmojiModal() {
-            const modal = document.getElementById('emoji-modal');
-            if (modal) modal.classList.toggle('hidden');
-            
-            const emojiList = document.getElementById('emoji-list');
-            if (emojiList && emojiList.children.length === 0) {
-                const emojis = ['😀','😂','😍','🥰','🔥','💯','👏','🙌','🚀','❤️','🎉','👍','👎'];
-                let html = '';
-                emojis.forEach(emoji => {
-                    html += `<div onclick="selectEmoji('${emoji}')" class="cursor-pointer text-4xl hover:scale-125">${emoji}</div>`;
-                });
-                emojiList.innerHTML = html;
-            }
-        }
-
-        function selectEmoji(emoji) {
-            const modal = document.getElementById('emoji-modal');
-            if (modal) modal.classList.add('hidden');
-            const input = document.getElementById('chat-input');
-            if (input) {
-                input.value += emoji;
-                input.focus();
-            }
-        }
-
-        function createNewServer() {
-            const name = prompt("New server name?");
-            if (!name) return;
-            const server = {
-                id: 'server-' + Date.now(),
-                name: name,
-                icon: '🌌',
-                channels: [{id: 'general', name: 'general', topic: 'Welcome to the server'}]
-            };
-            userServers.push(server);
-            renderServers();
-            selectServer(server);
-        }
-
-        function toggleNotifications() {
-            showToast("Notifications panel opened");
-        }
-
-        function showProfileModal() {
-            const profileModal = document.getElementById('profile-modal');
-            if (profileModal) profileModal.classList.remove('hidden');
-            const profileDisplay = document.getElementById('profile-display');
-            if (profileDisplay) profileDisplay.textContent = currentUser ? currentUser.displayName : "Guest";
-            const profileHandle = document.getElementById('profile-handle');
-            if (profileHandle) profileHandle.textContent = "@" + (currentUser ? currentUser.username : "guest");
-        }
-
-        function closeProfileModal() {
-            const profileModal = document.getElementById('profile-modal');
-            if (profileModal) profileModal.classList.add('hidden');
-        }
-
-        function logout() {
-            currentUser = null;
-            isGuest = false;
-            location.reload();
-        }
-
-        function showServerMenu() {
-            showToast("Server menu");
-        }
-
-        function toggleMembersSidebar() {
-            const sidebar = document.getElementById('members-sidebar');
-            if (sidebar) sidebar.classList.toggle('hidden');
-            if (sidebar && !sidebar.classList.contains('hidden')) {
-                renderMembersDemo();
-            }
-        }
-
-        function renderMembersDemo() {
-            const container = document.getElementById('members-content');
-            if (container) {
-                container.innerHTML = `
-                    <div class="p-3 hover:bg-zinc-800 rounded-2xl cursor-pointer flex gap-x-3">
-                        <img src="https://picsum.photos/id/64/32/32" class="w-8 h-8 rounded-2xl">
-                        <div class="font-medium">You</div>
-                    </div>
-                `;
-            }
-        }
-
-        function navigateToHome() {
-            showToast("Home");
-        }
-
-        function showSearchModal() {
-            const query = prompt("Search in Nexis");
-            if (query) showToast("Results for: " + query);
-        }
-
-        function switchToHomeView() {
-            showToast("Home view");
-        }
-
-        document.addEventListener('keydown', function(e) {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                showSearchModal();
-            }
+        const path = `messages/${currentServer.id}/${currentChannel.id}`;
+        const newMsgRef = db.ref(path).push();
+        await newMsgRef.set({
+          sender: currentUser.displayName,
+          avatar: currentUser.photoURL,
+          content: "",
+          fileUrl: url,
+          fileName: file.name,
+          fileType: file.type,
+          timestamp: Date.now(),
+          uid: currentUser.uid
         });
+        showToast("File sent as link");
+      };
+      input.click();
+    }
 
-        window.onload = function() {
-            initializeFirebase();
-            const authModal = document.getElementById('auth-modal');
-            if (authModal) authModal.classList.remove('hidden');
-        };
+    function handleKeydown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
 
-        window.guestSignIn = guestSignIn;
-        window.confirmGuest = confirmGuest;
-        window.googleSignIn = googleSignIn;
-        window.switchToLogin = switchToLogin;
-        window.switchToRegister = switchToRegister;
-        window.sendChatMessage = sendChatMessage;
-        window.handleMessageKeydown = handleMessageKeydown;
-        window.createNewServer = createNewServer;
-        window.showProfileModal = showProfileModal;
-        window.closeProfileModal = closeProfileModal;
-        window.logout = logout;
-        window.showEmojiModal = showEmojiModal;
-        window.selectEmoji = selectEmoji;
-        window.triggerUpload = triggerUpload;
-        window.toggleMembersSidebar = toggleMembersSidebar;
-        window.showServerMenu = showServerMenu;
-        window.cancelReply = cancelReply;
-    </script>
+    // === WebRTC (Basic) ===
+    async function startCall(isVideo) {
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: isVideo, audio: true });
+        document.getElementById('call-modal').classList.remove('hidden');
+        document.getElementById('call-status').textContent = isVideo ? "Video Call" : "Voice Call";
+
+        peerConnection = new RTCPeerConnection();
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+        // In real app you need signaling (Firebase DB works for that)
+        showToast("Call started (demo - signaling not fully implemented)");
+      } catch (err) {
+        showToast("Camera/Microphone access denied");
+      }
+    }
+
+    function startVoiceCall() { startCall(false); }
+    function startVideoCall() { startCall(true); }
+
+    function toggleMute() {
+      if (localStream) localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
+    }
+
+    function endCall() {
+      if (localStream) localStream.getTracks().forEach(t => t.stop());
+      if (peerConnection) peerConnection.close();
+      document.getElementById('call-modal').classList.add('hidden');
+      showToast("Call ended");
+    }
+
+    // Other functions (shortened)
+    function createNewServer() { showToast("Server creation coming soon"); }
+    function toggleMembersSidebar() { document.getElementById('members-sidebar').classList.toggle('hidden'); }
+    function showProfileModal() { 
+      document.getElementById('profile-modal').classList.remove('hidden'); 
+    }
+    function closeProfileModal() { document.getElementById('profile-modal').classList.add('hidden'); }
+    function logout() { auth.signOut().then(() => location.reload()); }
+    function navigateToHome() { showToast("Welcome to Nexis"); }
+    function switchToHomeView() { showToast("Home feed coming soon"); }
+    function showSearchModal() { const q = prompt("Search:"); if(q) showToast(`Results for "${q}"`); }
+    function showEmojiModal() { showToast("Emoji picker coming soon"); }
+
+    window.onload = () => {
+      initFirebase();
+      auth.onAuthStateChanged(user => {
+        if (user) {
+          currentUser = user;
+          initializeApp();
+        } else {
+          document.getElementById('auth-modal').classList.remove('hidden');
+        }
+      });
+    };
+
+    // Expose
+    Object.assign(window, {
+      googleSignIn, guestSignIn, sendMessage, handleKeydown, triggerFileUpload,
+      startVoiceCall, startVideoCall, toggleMute, endCall, showProfileModal,
+      closeProfileModal, logout, navigateToHome, switchToHomeView, showSearchModal,
+      toggleMembersSidebar, showEmojiModal, createNewServer
+    });
+  </script>
 </body>
 </html>
