@@ -10,9 +10,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
-        
-        body {
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
+                body {
             font-family: 'Inter', system_ui, sans-serif;
         }
         .logo-font {
@@ -32,7 +31,6 @@
 </head>
 <body class="bg-zinc-950 text-zinc-100 min-h-screen">
     <div class="max-w-6xl mx-auto">
-        <!-- HEADER -->
         <div class="border-b border-zinc-800 bg-zinc-900 py-6 px-8 flex items-center justify-between">
             <div class="flex items-center gap-x-4">
                 <div class="w-9 h-9 bg-gradient-to-br from-violet-500 to-blue-500 rounded-2xl flex items-center justify-center text-white font-bold text-xl">H</div>
@@ -41,8 +39,7 @@
                     <div class="text-xs text-zinc-500 -mt-1">PROJECT DASHBOARD</div>
                 </div>
             </div>
-            
-            <div id="user-info" class="hidden items-center gap-x-3">
+                        <div id="user-info" class="hidden items-center gap-x-3">
                 <div id="user-email" class="text-sm text-zinc-400"></div>
                 <button onclick="logout()" class="px-5 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-sm flex items-center gap-x-2">
                     <i class="fa-solid fa-right-from-bracket"></i>
@@ -51,21 +48,18 @@
             </div>
         </div>
 
-        <!-- LOGIN / REGISTER SCREEN -->
         <div id="auth-screen" class="min-h-[calc(100vh-80px)] flex items-center justify-center p-8">
             <div class="glass border border-zinc-700 max-w-md w-full rounded-3xl p-10">
                 <div class="text-center mb-10">
                     <div class="logo-font text-5xl mb-2">Hyperspace</div>
                     <p class="text-zinc-400">Project Resources</p>
                 </div>
-                
-                <button onclick="googleSignIn()" 
-                    class="w-full py-4 bg-white text-zinc-900 rounded-2xl flex items-center justify-center gap-x-3 mb-6 font-medium">
+                                <button onclick="googleSignIn()" 
+                     class="w-full py-4 bg-white text-zinc-900 rounded-2xl flex items-center justify-center gap-x-3 mb-6 font-medium">
                     <i class="fa-brands fa-google"></i>
                     Sign in with Google
                 </button>
-                
-                <div class="relative my-6">
+                                <div class="relative my-6">
                     <div class="absolute inset-0 flex items-center">
                         <div class="w-full border-t border-zinc-700"></div>
                     </div>
@@ -73,32 +67,27 @@
                         <span class="bg-zinc-900 px-4 text-zinc-500">or</span>
                     </div>
                 </div>
-                
-                <!-- LOGIN FORM -->
-                <div id="login-form">
+                                <div id="login-form">
                     <input id="login-email" type="email" placeholder="Email" 
-                        class="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-400 rounded-2xl px-6 py-4 mb-4 outline-none">
+                         class="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-400 rounded-2xl px-6 py-4 mb-4 outline-none">
                     <input id="login-password" type="password" placeholder="Password" 
-                        class="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-400 rounded-2xl px-6 py-4 mb-6 outline-none">
+                         class="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-400 rounded-2xl px-6 py-4 mb-6 outline-none">
                     <button onclick="emailLogin()" 
-                        class="w-full py-4 bg-violet-600 hover:bg-violet-500 rounded-2xl font-medium">Log In</button>
+                         class="w-full py-4 bg-violet-600 hover:bg-violet-500 rounded-2xl font-medium">Log In</button>
                     <div onclick="switchToRegister()" class="text-center text-violet-300 mt-6 cursor-pointer text-sm">Don't have an account? Register</div>
                 </div>
-                
-                <!-- REGISTER FORM -->
-                <div id="register-form" class="hidden">
+                                <div id="register-form" class="hidden">
                     <input id="reg-email" type="email" placeholder="Email" 
-                        class="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-400 rounded-2xl px-6 py-4 mb-4 outline-none">
+                         class="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-400 rounded-2xl px-6 py-4 mb-4 outline-none">
                     <input id="reg-password" type="password" placeholder="Password" 
-                        class="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-400 rounded-2xl px-6 py-4 mb-6 outline-none">
+                         class="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-400 rounded-2xl px-6 py-4 mb-6 outline-none">
                     <button onclick="emailRegister()" 
-                        class="w-full py-4 bg-violet-600 hover:bg-violet-500 rounded-2xl font-medium">Create Account</button>
+                         class="w-full py-4 bg-violet-600 hover:bg-violet-500 rounded-2xl font-medium">Create Account</button>
                     <div onclick="switchToLogin()" class="text-center text-violet-300 mt-6 cursor-pointer text-sm">Already have an account? Log In</div>
                 </div>
             </div>
         </div>
 
-        <!-- DASHBOARD -->
         <div id="dashboard" class="hidden p-8">
             <div class="flex justify-between items-end mb-8">
                 <div>
@@ -112,11 +101,14 @@
                 </button>
             </div>
 
-            <!-- STATS -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                 <div class="glass border border-zinc-700 rounded-3xl p-6">
                     <div class="text-sm text-zinc-400">TOTAL LINKS</div>
                     <div id="total-links" class="text-5xl font-semibold mt-2">0</div>
+                </div>
+                <div class="glass border border-zinc-700 rounded-3xl p-6">
+                    <div class="text-sm text-zinc-400">TOTAL USERS</div>
+                    <div id="total-users" class="text-5xl font-semibold mt-2">0</div>
                 </div>
                 <div class="glass border border-zinc-700 rounded-3xl p-6">
                     <div class="text-sm text-zinc-400">LAST UPDATED</div>
@@ -128,26 +120,20 @@
                 </div>
             </div>
 
-            <!-- LINKS GRID -->
             <div id="links-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
     </div>
 
-    <!-- ADD / EDIT MODAL -->
     <div id="link-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-[9999]">
         <div class="glass border border-zinc-600 w-full max-w-lg rounded-3xl p-8">
             <h2 id="modal-title" class="text-2xl font-semibold mb-6">Add New Link</h2>
-            
-            <input id="link-name" type="text" placeholder="Link Name (e.g. Design System)" 
-                class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4 mb-4 outline-none">
-            
-            <input id="link-url" type="url" placeholder="https://example.com" 
-                class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4 mb-4 outline-none">
-            
-            <textarea id="link-desc" rows="3" placeholder="Short description" 
-                class="w-full bg-zinc-900 border border-zinc-700 rounded-3xl px-6 py-4 outline-none"></textarea>
-            
-            <div class="flex gap-x-4 mt-8">
+                        <input id="link-name" type="text" placeholder="Link Name (e.g. Design System)" 
+                 class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4 mb-4 outline-none">
+                        <input id="link-url" type="url" placeholder="https://example.com" 
+                 class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4 mb-4 outline-none">
+                        <textarea id="link-desc" rows="3" placeholder="Short description" 
+                 class="w-full bg-zinc-900 border border-zinc-700 rounded-3xl px-6 py-4 outline-none"></textarea>
+                        <div class="flex gap-x-4 mt-8">
                 <button onclick="closeLinkModal()" 
                     class="flex-1 py-4 border border-zinc-600 rounded-2xl">Cancel</button>
                 <button onclick="saveLink()" 
@@ -156,7 +142,6 @@
         </div>
     </div>
 
-    <!-- TOAST -->
     <div id="toast" class="hidden fixed bottom-6 right-6 bg-zinc-900 border border-violet-400 text-white px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-x-3 z-[99999]">
         <span id="toast-text"></span>
     </div>
@@ -172,7 +157,7 @@
           appId: "1:1050495683444:web:4a3c2b294542cb8d313a21",
           measurementId: "G-XWKMZTBQZY"
         };
-
+        
         let app, auth, db;
         let currentUser = null;
         let editingLinkId = null;
@@ -195,13 +180,24 @@
                 .catch(err => showToast("Google sign in failed"));
         }
 
+        // Updated helper method to set context text info
+        function updateAccessLevelDisplay(isAdmin) {
+            const accessEl = document.getElementById('access-level');
+            if (isAdmin) {
+                accessEl.textContent = "Admin / Creator";
+                accessEl.className = "text-violet-400 font-medium mt-2";
+            } else {
+                accessEl.textContent = "Full View";
+                accessEl.className = "text-emerald-400 font-medium mt-2";
+            }
+        }
+
         function emailLogin() {
             initFirebase();
             const email = document.getElementById('login-email').value.trim();
             const pass = document.getElementById('login-password').value;
             if (!email || !pass) return showToast("Enter email and password");
-            
-            auth.signInWithEmailAndPassword(email, pass)
+                        auth.signInWithEmailAndPassword(email, pass)
                 .then(result => {
                     currentUser = result.user;
                     handleAuthSuccess();
@@ -214,8 +210,7 @@
             const email = document.getElementById('reg-email').value.trim();
             const pass = document.getElementById('reg-password').value;
             if (!email || !pass) return showToast("Enter email and password");
-            
-            auth.createUserWithEmailAndPassword(email, pass)
+                        auth.createUserWithEmailAndPassword(email, pass)
                 .then(result => {
                     currentUser = result.user;
                     handleAuthSuccess();
@@ -228,12 +223,14 @@
             document.getElementById('dashboard').classList.remove('hidden');
             document.getElementById('user-info').classList.remove('hidden');
             document.getElementById('user-email').textContent = currentUser.email;
-            
+                        
             const isAdmin = currentUser.email === "rileysargent2@gmail.com";
             if (isAdmin) {
                 document.getElementById('add-button').classList.remove('hidden');
             }
+            updateAccessLevelDisplay(isAdmin);
             
+            trackUserMetrics();
             loadLinks();
         }
 
@@ -247,27 +244,41 @@
             document.getElementById('login-form').classList.remove('hidden');
         }
 
+        function trackUserMetrics() {
+            if (!currentUser) return;
+            
+            const userKey = currentUser.uid;
+            
+            // Log presence data safely down inside the nested workspace node
+            db.ref('hyperspace/users/' + userKey).set({
+                email: currentUser.email,
+                lastSeen: Date.now()
+            });
+            
+            // Listen to analytics array updates real-time
+            db.ref('hyperspace/users').on('value', snapshot => {
+                const usersData = snapshot.val();
+                const count = usersData ? Object.keys(usersData).length : 0;
+                document.getElementById('total-users').textContent = count;
+            });
+        }
+
         function loadLinks() {
             const grid = document.getElementById('links-grid');
             grid.innerHTML = `<div class="col-span-3 text-center py-12 text-zinc-400">Loading resources...</div>`;
-            
-            db.ref('hyperspace/links').on('value', snapshot => {
+                        db.ref('hyperspace/links').on('value', snapshot => {
                 const data = snapshot.val();
                 grid.innerHTML = '';
-                
-                let count = 0;
-                
-                if (!data) {
+                                let count = 0;
+                                if (!data) {
                     grid.innerHTML = `<div class="col-span-3 text-center py-20 text-zinc-400">No links yet.</div>`;
                     document.getElementById('total-links').textContent = '0';
                     return;
                 }
-                
-                Object.keys(data).forEach(key => {
+                                Object.keys(data).forEach(key => {
                     const link = data[key];
                     count++;
-                    
-                    const card = document.createElement('div');
+                                        const card = document.createElement('div');
                     card.className = "glass border border-zinc-700 rounded-3xl p-6 card";
                     card.innerHTML = `
                         <div class="font-semibold text-xl mb-2">${link.name}</div>
@@ -281,8 +292,7 @@
                     `;
                     grid.appendChild(card);
                 });
-                
-                document.getElementById('total-links').textContent = count;
+                                document.getElementById('total-links').textContent = count;
             });
         }
 
@@ -305,25 +315,21 @@
 
         function saveLink() {
             if (currentUser.email !== "rileysargent2@gmail.com") return;
-            
-            const name = document.getElementById('link-name').value.trim();
+                        const name = document.getElementById('link-name').value.trim();
             const url = document.getElementById('link-url').value.trim();
             const desc = document.getElementById('link-desc').value.trim();
-            
-            if (!name || !url) {
+                        if (!name || !url) {
                 showToast("Name and URL required");
                 return;
             }
-            
-            const linkData = {
+                        const linkData = {
                 name,
                 url,
                 description: desc,
                 addedBy: currentUser.email,
                 timestamp: Date.now()
             };
-            
-            if (editingLinkId) {
+                        if (editingLinkId) {
                 db.ref('hyperspace/links/' + editingLinkId).update(linkData).then(() => {
                     showToast("Link updated");
                     closeLinkModal();
@@ -390,5 +396,5 @@
         window.editLink = editLink;
         window.deleteLink = deleteLink;
     </script>
-</body>a
+</body>
 </html>
