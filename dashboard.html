@@ -3,149 +3,277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Hyperspace Dashboard</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs (Compat v9) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
-                body {
-            font-family: 'Inter', system_ui, sans-serif;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
         .logo-font {
             font-family: 'Space Grotesk', sans-serif;
         }
         .glass {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
+            background: rgba(24, 24, 27, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
         }
-        .card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .card:hover {
+        .glass-card:hover {
             transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 12px 30px -10px rgba(124, 58, 237, 0.15);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #09090b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3f3f46;
         }
     </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100 min-h-screen">
-    <div class="max-w-6xl mx-auto">
-        <div class="border-b border-zinc-800 bg-zinc-900 py-6 px-8 flex items-center justify-between">
-            <div class="flex items-center gap-x-4">
-                <div class="w-9 h-9 bg-gradient-to-br from-violet-500 to-blue-500 rounded-2xl flex items-center justify-center text-white font-bold text-xl">H</div>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen selection:bg-violet-500 selection:text-white pb-12">
+
+    <!-- Top Header Navigation -->
+    <header class="sticky top-0 z-40 w-full border-b border-zinc-800/80 glass">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-x-3.5">
+                <div class="w-10 h-10 bg-gradient-to-tr from-violet-600 via-indigo-500 to-cyan-400 rounded-2xl flex items-center justify-center text-white font-extrabold text-xl shadow-lg shadow-violet-500/20">
+                    H
+                </div>
                 <div>
-                    <div class="logo-font text-3xl font-semibold tracking-tighter">Hyperspace</div>
-                    <div class="text-xs text-zinc-500 -mt-1">PROJECT DASHBOARD</div>
+                    <div class="logo-font text-2xl font-bold tracking-tight text-white flex items-center gap-x-2">
+                        Hyperspace
+                        <span class="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20">v2.0</span>
+                    </div>
+                    <div class="text-[11px] font-medium text-zinc-400 tracking-wider">PROJECT RESOURCES & HUB</div>
                 </div>
             </div>
-                        <div id="user-info" class="hidden items-center gap-x-3">
-                <div id="user-email" class="text-sm text-zinc-400"></div>
-                <button onclick="logout()" class="px-5 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-sm flex items-center gap-x-2">
-                    <i class="fa-solid fa-right-from-bracket"></i>
+            
+            <div id="user-info" class="hidden items-center gap-x-4">
+                <div class="text-right hidden sm:block">
+                    <div id="user-email" class="text-sm font-medium text-zinc-200"></div>
+                    <div id="user-role-badge" class="text-xs text-zinc-400">Viewer</div>
+                </div>
+                <button onclick="logout()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 hover:border-zinc-600 rounded-xl text-sm font-medium flex items-center gap-x-2 transition-all">
+                    <i class="fa-solid fa-right-from-bracket text-zinc-400"></i>
                     <span>Logout</span>
                 </button>
             </div>
         </div>
+    </header>
 
-        <div id="auth-screen" class="min-h-[calc(100vh-80px)] flex items-center justify-center p-8">
-            <div class="glass border border-zinc-700 max-w-md w-full rounded-3xl p-10">
-                <div class="text-center mb-10">
-                    <div class="logo-font text-5xl mb-2">Hyperspace</div>
-                    <p class="text-zinc-400">Project Resources</p>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        
+        <!-- Auth Screen Section -->
+        <section id="auth-screen" class="min-h-[calc(100vh-160px)] flex items-center justify-center p-4">
+            <div class="glass border border-zinc-800 max-w-md w-full rounded-3xl p-8 sm:p-10 shadow-2xl relative overflow-hidden">
+                <div class="absolute -top-24 -right-24 w-48 h-48 bg-violet-600/20 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div class="text-center mb-8">
+                    <div class="w-14 h-14 bg-violet-600/10 border border-violet-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-violet-400">
+                        <i class="fa-solid fa-rocket text-2xl"></i>
+                    </div>
+                    <h2 class="logo-font text-3xl font-bold">Welcome Back</h2>
+                    <p class="text-zinc-400 text-sm mt-1">Sign in to access your project dashboard</p>
                 </div>
-                                <button onclick="googleSignIn()" 
-                     class="w-full py-4 bg-white text-zinc-900 rounded-2xl flex items-center justify-center gap-x-3 mb-6 font-medium">
-                    <i class="fa-brands fa-google"></i>
-                    Sign in with Google
+
+                <button onclick="googleSignIn()" class="w-full py-3.5 px-4 bg-zinc-100 hover:bg-white text-zinc-900 rounded-2xl flex items-center justify-center gap-x-3 font-semibold text-sm transition-all shadow-md active:scale-[0.98]">
+                    <i class="fa-brands fa-google text-base"></i>
+                    <span>Continue with Google</span>
                 </button>
-                                <div class="relative my-6">
+
+                <div class="relative my-6">
                     <div class="absolute inset-0 flex items-center">
-                        <div class="w-full border-t border-zinc-700"></div>
+                        <div class="w-full border-t border-zinc-800"></div>
                     </div>
                     <div class="relative flex justify-center text-xs uppercase">
-                        <span class="bg-zinc-900 px-4 text-zinc-500">or</span>
+                        <span class="bg-zinc-950 px-3 text-zinc-400 font-medium">or email</span>
                     </div>
                 </div>
-                                <div id="login-form">
-                    <input id="login-email" type="email" placeholder="Email" 
-                         class="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-400 rounded-2xl px-6 py-4 mb-4 outline-none">
-                    <input id="login-password" type="password" placeholder="Password" 
-                         class="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-400 rounded-2xl px-6 py-4 mb-6 outline-none">
-                    <button onclick="emailLogin()" 
-                         class="w-full py-4 bg-violet-600 hover:bg-violet-500 rounded-2xl font-medium">Log In</button>
-                    <div onclick="switchToRegister()" class="text-center text-violet-300 mt-6 cursor-pointer text-sm">Don't have an account? Register</div>
+
+                <!-- Login Form -->
+                <form id="login-form" onsubmit="event.preventDefault(); emailLogin();" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-400 mb-1.5">Email Address</label>
+                        <input id="login-email" type="email" required placeholder="name@company.com" class="w-full bg-zinc-900/90 border border-zinc-800 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-2xl px-4 py-3 text-sm text-zinc-100 outline-none transition-all placeholder:text-zinc-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-400 mb-1.5">Password</label>
+                        <input id="login-password" type="password" required placeholder="••••••••" class="w-full bg-zinc-900/90 border border-zinc-800 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-2xl px-4 py-3 text-sm text-zinc-100 outline-none transition-all placeholder:text-zinc-600">
+                    </div>
+                    <button type="submit" class="w-full py-3.5 bg-violet-600 hover:bg-violet-500 active:scale-[0.98] rounded-2xl font-semibold text-sm transition-all shadow-lg shadow-violet-600/25 mt-2">Log In</button>
+                    <p onclick="switchToRegister()" class="text-center text-zinc-400 hover:text-violet-400 mt-4 cursor-pointer text-xs transition-colors">Don't have an account? <span class="text-violet-400 font-medium">Register</span></p>
+                </form>
+
+                <!-- Register Form -->
+                <form id="register-form" onsubmit="event.preventDefault(); emailRegister();" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-400 mb-1.5">Email Address</label>
+                        <input id="reg-email" type="email" required placeholder="name@company.com" class="w-full bg-zinc-900/90 border border-zinc-800 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-2xl px-4 py-3 text-sm text-zinc-100 outline-none transition-all placeholder:text-zinc-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-400 mb-1.5">Password</label>
+                        <input id="reg-password" type="password" required placeholder="At least 6 characters" class="w-full bg-zinc-900/90 border border-zinc-800 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 rounded-2xl px-4 py-3 text-sm text-zinc-100 outline-none transition-all placeholder:text-zinc-600">
+                    </div>
+                    <button type="submit" class="w-full py-3.5 bg-violet-600 hover:bg-violet-500 active:scale-[0.98] rounded-2xl font-semibold text-sm transition-all shadow-lg shadow-violet-600/25 mt-2">Create Account</button>
+                    <p onclick="switchToLogin()" class="text-center text-zinc-400 hover:text-violet-400 mt-4 cursor-pointer text-xs transition-colors">Already have an account? <span class="text-violet-400 font-medium">Log In</span></p>
+                </form>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="hidden space-y-8">
+            
+            <!-- Metrics Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass border border-zinc-800/80 rounded-3xl p-6 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Total Links</span>
+                        <div class="p-2.5 bg-violet-500/10 text-violet-400 rounded-2xl"><i class="fa-solid fa-link"></i></div>
+                    </div>
+                    <div id="total-links" class="text-4xl font-bold mt-3">0</div>
+                    <div class="text-xs text-zinc-400 mt-2">Active resources stored</div>
                 </div>
-                                <div id="register-form" class="hidden">
-                    <input id="reg-email" type="email" placeholder="Email" 
-                         class="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-400 rounded-2xl px-6 py-4 mb-4 outline-none">
-                    <input id="reg-password" type="password" placeholder="Password" 
-                         class="w-full bg-zinc-900 border border-zinc-700 focus:border-violet-400 rounded-2xl px-6 py-4 mb-6 outline-none">
-                    <button onclick="emailRegister()" 
-                         class="w-full py-4 bg-violet-600 hover:bg-violet-500 rounded-2xl font-medium">Create Account</button>
-                    <div onclick="switchToLogin()" class="text-center text-violet-300 mt-6 cursor-pointer text-sm">Already have an account? Log In</div>
+
+                <div class="glass border border-zinc-800/80 rounded-3xl p-6 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Active Users</span>
+                        <div class="p-2.5 bg-indigo-500/10 text-indigo-400 rounded-2xl"><i class="fa-solid fa-users"></i></div>
+                    </div>
+                    <div id="total-users" class="text-4xl font-bold mt-3">0</div>
+                    <div class="text-xs text-zinc-400 mt-2">Registered workspace members</div>
+                </div>
+
+                <div class="glass border border-zinc-800/80 rounded-3xl p-6 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Last Sync</span>
+                        <div class="p-2.5 bg-cyan-500/10 text-cyan-400 rounded-2xl"><i class="fa-solid fa-rotate text-xs"></i></div>
+                    </div>
+                    <div id="last-updated" class="text-2xl font-semibold mt-4 truncate">Just now</div>
+                    <div class="text-xs text-zinc-400 mt-2">Realtime DB sync state</div>
+                </div>
+
+                <div class="glass border border-zinc-800/80 rounded-3xl p-6 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Access Rights</span>
+                        <div class="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-2xl"><i class="fa-solid fa-shield-halved"></i></div>
+                    </div>
+                    <div id="access-level" class="text-xl font-semibold mt-4 text-emerald-400">Full Access</div>
+                    <div class="text-xs text-zinc-400 mt-2" id="access-subtitle">Authenticated Workspace</div>
                 </div>
             </div>
-        </div>
 
-        <div id="dashboard" class="hidden p-8">
-            <div class="flex justify-between items-end mb-8">
-                <div>
-                    <h1 class="text-4xl font-semibold">Hyperspace Links</h1>
-                    <p class="text-zinc-400">Quick access to project resources</p>
+            <!-- Toolbar (Search, Filter, Add Link) -->
+            <div class="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+                <div class="flex flex-1 flex-col sm:flex-row gap-3">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-sm"></i>
+                        <input id="search-input" type="text" oninput="filterAndRenderLinks()" placeholder="Search links, descriptions, or tags..." class="w-full bg-zinc-900 border border-zinc-800 focus:border-violet-500 rounded-2xl pl-11 pr-4 py-3 text-sm text-zinc-100 outline-none transition-all placeholder:text-zinc-600">
+                    </div>
+                    <select id="category-filter" onchange="filterAndRenderLinks()" class="bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-2xl px-4 py-3 text-sm outline-none focus:border-violet-500 transition-all cursor-pointer">
+                        <option value="all">All Categories</option>
+                        <option value="development">Development</option>
+                        <option value="design">Design</option>
+                        <option value="documentation">Documentation</option>
+                        <option value="tools">Tools & Utilities</option>
+                        <option value="other">Other</option>
+                    </select>
                 </div>
-                <button onclick="showAddModal()" id="add-button"
-                    class="flex items-center gap-x-3 bg-violet-600 hover:bg-violet-500 px-6 py-3 rounded-2xl hidden">
-                    <i class="fa-solid fa-plus"></i>
-                    <span>Add New Link</span>
+
+                <button onclick="showAddModal()" id="add-button" class="hidden items-center justify-center gap-x-2 bg-violet-600 hover:bg-violet-500 active:scale-[0.98] text-white font-semibold px-6 py-3 rounded-2xl text-sm transition-all shadow-lg shadow-violet-600/25">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>Add Resource</span>
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                <div class="glass border border-zinc-700 rounded-3xl p-6">
-                    <div class="text-sm text-zinc-400">TOTAL LINKS</div>
-                    <div id="total-links" class="text-5xl font-semibold mt-2">0</div>
-                </div>
-                <div class="glass border border-zinc-700 rounded-3xl p-6">
-                    <div class="text-sm text-zinc-400">TOTAL USERS</div>
-                    <div id="total-users" class="text-5xl font-semibold mt-2">0</div>
-                </div>
-                <div class="glass border border-zinc-700 rounded-3xl p-6">
-                    <div class="text-sm text-zinc-400">LAST UPDATED</div>
-                    <div id="last-updated" class="text-2xl font-medium mt-2">Just now</div>
-                </div>
-                <div class="glass border border-zinc-700 rounded-3xl p-6">
-                    <div class="text-sm text-zinc-400">YOUR ACCESS</div>
-                    <div id="access-level" class="text-emerald-400 font-medium mt-2">Full View</div>
-                </div>
+            <!-- Links Grid -->
+            <div id="links-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamically Populated -->
             </div>
+        </section>
 
-            <div id="links-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </main>
+
+    <!-- Add/Edit Link Modal -->
+    <div id="link-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div class="glass border border-zinc-800 w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl relative">
+            <div class="flex items-center justify-between mb-6">
+                <h3 id="modal-title" class="logo-font text-2xl font-bold">Add New Link</h3>
+                <button onclick="closeLinkModal()" class="w-8 h-8 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+            
+            <form onsubmit="event.preventDefault(); saveLink();" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-zinc-400 mb-1.5">Resource Name *</label>
+                    <input id="link-name" type="text" required placeholder="e.g. Design System Specs" class="w-full bg-zinc-900 border border-zinc-800 focus:border-violet-500 rounded-2xl px-4 py-3 text-sm outline-none transition-all">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-zinc-400 mb-1.5">URL *</label>
+                    <input id="link-url" type="url" required placeholder="https://example.com" class="w-full bg-zinc-900 border border-zinc-800 focus:border-violet-500 rounded-2xl px-4 py-3 text-sm outline-none transition-all">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-400 mb-1.5">Category</label>
+                        <select id="link-category" class="w-full bg-zinc-900 border border-zinc-800 focus:border-violet-500 rounded-2xl px-4 py-3 text-sm outline-none transition-all text-zinc-200">
+                            <option value="development">Development</option>
+                            <option value="design">Design</option>
+                            <option value="documentation">Documentation</option>
+                            <option value="tools">Tools & Utilities</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-400 mb-1.5">Tags (comma separated)</label>
+                        <input id="link-tags" type="text" placeholder="figma, ui, v2" class="w-full bg-zinc-900 border border-zinc-800 focus:border-violet-500 rounded-2xl px-4 py-3 text-sm outline-none transition-all">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-zinc-400 mb-1.5">Description</label>
+                    <textarea id="link-desc" rows="3" placeholder="Brief summary of what this link contains..." class="w-full bg-zinc-900 border border-zinc-800 focus:border-violet-500 rounded-2xl px-4 py-3 text-sm outline-none transition-all resize-none"></textarea>
+                </div>
+
+                <div class="flex gap-x-3 pt-4">
+                    <button type="button" onclick="closeLinkModal()" class="flex-1 py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-2xl text-sm font-semibold transition-all">Cancel</button>
+                    <button type="submit" class="flex-1 py-3 bg-violet-600 hover:bg-violet-500 rounded-2xl text-sm font-semibold transition-all shadow-lg shadow-violet-600/25">Save Resource</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <div id="link-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-[9999]">
-        <div class="glass border border-zinc-600 w-full max-w-lg rounded-3xl p-8">
-            <h2 id="modal-title" class="text-2xl font-semibold mb-6">Add New Link</h2>
-                        <input id="link-name" type="text" placeholder="Link Name (e.g. Design System)" 
-                 class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4 mb-4 outline-none">
-                        <input id="link-url" type="url" placeholder="https://example.com" 
-                 class="w-full bg-zinc-900 border border-zinc-700 rounded-2xl px-6 py-4 mb-4 outline-none">
-                        <textarea id="link-desc" rows="3" placeholder="Short description" 
-                 class="w-full bg-zinc-900 border border-zinc-700 rounded-3xl px-6 py-4 outline-none"></textarea>
-                        <div class="flex gap-x-4 mt-8">
-                <button onclick="closeLinkModal()" 
-                    class="flex-1 py-4 border border-zinc-600 rounded-2xl">Cancel</button>
-                <button onclick="saveLink()" 
-                    class="flex-1 py-4 bg-violet-600 hover:bg-violet-500 rounded-2xl">Save</button>
-            </div>
-        </div>
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden fixed bottom-6 right-6 bg-zinc-900/95 border border-zinc-700 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-x-3 z-50 transition-all backdrop-blur-md">
+        <div id="toast-icon" class="text-violet-400"><i class="fa-solid fa-circle-info"></i></div>
+        <span id="toast-text" class="text-sm font-medium"></span>
     </div>
 
-    <div id="toast" class="hidden fixed bottom-6 right-6 bg-zinc-900 border border-violet-400 text-white px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-x-3 z-[99999]">
-        <span id="toast-text"></span>
-    </div>
-
+    <!-- Application Script -->
     <script>
         const firebaseConfig = {
           apiKey: "AIzaSyCr2mG-lVDHFwW4fTAx7_5AwZX2jJ8myrw",
@@ -157,18 +285,22 @@
           appId: "1:1050495683444:web:4a3c2b294542cb8d313a21",
           measurementId: "G-XWKMZTBQZY"
         };
-        
+
+        const ADMIN_EMAIL = "rileysargent2@gmail.com";
         let app, auth, db;
         let currentUser = null;
         let editingLinkId = null;
+        let rawLinksData = {};
 
         function initFirebase() {
-            if (app) return;
-            app = firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth();
-            db = firebase.database();
+            if (!app) {
+                app = firebase.initializeApp(firebaseConfig);
+                auth = firebase.auth();
+                db = firebase.database();
+            }
         }
 
+        // Authentication Methods
         function googleSignIn() {
             initFirebase();
             const provider = new firebase.auth.GoogleAuthProvider();
@@ -177,45 +309,33 @@
                     currentUser = result.user;
                     handleAuthSuccess();
                 })
-                .catch(err => showToast("Google sign in failed"));
-        }
-
-        // Updated helper method to set context text info
-        function updateAccessLevelDisplay(isAdmin) {
-            const accessEl = document.getElementById('access-level');
-            if (isAdmin) {
-                accessEl.textContent = "Admin / Creator";
-                accessEl.className = "text-violet-400 font-medium mt-2";
-            } else {
-                accessEl.textContent = "Full View";
-                accessEl.className = "text-emerald-400 font-medium mt-2";
-            }
+                .catch(err => showToast(err.message || "Google sign in failed", "error"));
         }
 
         function emailLogin() {
             initFirebase();
             const email = document.getElementById('login-email').value.trim();
             const pass = document.getElementById('login-password').value;
-            if (!email || !pass) return showToast("Enter email and password");
-                        auth.signInWithEmailAndPassword(email, pass)
-                .then(result => {
-                    currentUser = result.user;
-                    handleAuthSuccess();
-                })
-                .catch(() => showToast("Invalid credentials"));
+            
+            auth.signInWithEmailAndPassword(email, pass)
+                .catch(err => showToast(err.message || "Invalid credentials", "error"));
         }
 
         function emailRegister() {
             initFirebase();
             const email = document.getElementById('reg-email').value.trim();
             const pass = document.getElementById('reg-password').value;
-            if (!email || !pass) return showToast("Enter email and password");
-                        auth.createUserWithEmailAndPassword(email, pass)
-                .then(result => {
-                    currentUser = result.user;
-                    handleAuthSuccess();
-                })
-                .catch(err => showToast(err.message));
+
+            auth.createUserWithEmailAndPassword(email, pass)
+                .catch(err => showToast(err.message || "Registration failed", "error"));
+        }
+
+        function logout() {
+            if (auth) {
+                auth.signOut().then(() => {
+                    location.reload();
+                });
+            }
         }
 
         function handleAuthSuccess() {
@@ -223,13 +343,24 @@
             document.getElementById('dashboard').classList.remove('hidden');
             document.getElementById('user-info').classList.remove('hidden');
             document.getElementById('user-email').textContent = currentUser.email;
-                        
-            const isAdmin = currentUser.email === "rileysargent2@gmail.com";
+
+            const isAdmin = currentUser.email === ADMIN_EMAIL;
+            const accessEl = document.getElementById('access-level');
+            const roleBadge = document.getElementById('user-role-badge');
+
             if (isAdmin) {
                 document.getElementById('add-button').classList.remove('hidden');
+                document.getElementById('add-button').classList.add('flex');
+                accessEl.textContent = "Admin / Owner";
+                accessEl.className = "text-xl font-semibold mt-4 text-violet-400";
+                roleBadge.textContent = "Admin";
+                roleBadge.className = "text-xs text-violet-400 font-medium";
+            } else {
+                accessEl.textContent = "Full View";
+                accessEl.className = "text-xl font-semibold mt-4 text-emerald-400";
+                roleBadge.textContent = "Viewer";
             }
-            updateAccessLevelDisplay(isAdmin);
-            
+
             trackUserMetrics();
             loadLinks();
         }
@@ -244,18 +375,16 @@
             document.getElementById('login-form').classList.remove('hidden');
         }
 
+        // Metrics & Analytics
         function trackUserMetrics() {
             if (!currentUser) return;
-            
             const userKey = currentUser.uid;
-            
-            // Log presence data safely down inside the nested workspace node
+
             db.ref('hyperspace/users/' + userKey).set({
                 email: currentUser.email,
                 lastSeen: Date.now()
             });
-            
-            // Listen to analytics array updates real-time
+
             db.ref('hyperspace/users').on('value', snapshot => {
                 const usersData = snapshot.val();
                 const count = usersData ? Object.keys(usersData).length : 0;
@@ -263,49 +392,126 @@
             });
         }
 
+        // Data Loading and Display
         function loadLinks() {
             const grid = document.getElementById('links-grid');
-            grid.innerHTML = `<div class="col-span-3 text-center py-12 text-zinc-400">Loading resources...</div>`;
-                        db.ref('hyperspace/links').on('value', snapshot => {
-                const data = snapshot.val();
-                grid.innerHTML = '';
-                                let count = 0;
-                                if (!data) {
-                    grid.innerHTML = `<div class="col-span-3 text-center py-20 text-zinc-400">No links yet.</div>`;
-                    document.getElementById('total-links').textContent = '0';
-                    return;
-                }
-                                Object.keys(data).forEach(key => {
-                    const link = data[key];
-                    count++;
-                                        const card = document.createElement('div');
-                    card.className = "glass border border-zinc-700 rounded-3xl p-6 card";
-                    card.innerHTML = `
-                        <div class="font-semibold text-xl mb-2">${link.name}</div>
-                        <a href="${link.url}" target="_blank" class="text-violet-400 hover:underline block mb-3 break-all">${link.url}</a>
-                        ${link.description ? `<p class="text-zinc-400 text-sm">${link.description}</p>` : ''}
-                        ${currentUser && currentUser.email === "rileysargent2@gmail.com" ? `
-                        <div class="flex gap-x-3 mt-6">
-                            <button onclick="editLink('${key}')" class="flex-1 py-2 text-sm border border-zinc-600 rounded-2xl">Edit</button>
-                            <button onclick="deleteLink('${key}')" class="flex-1 py-2 text-sm border border-red-900 text-red-400 rounded-2xl">Delete</button>
-                        </div>` : ''}
-                    `;
-                    grid.appendChild(card);
-                });
-                                document.getElementById('total-links').textContent = count;
+            grid.innerHTML = `
+                <div class="col-span-full text-center py-16 text-zinc-500">
+                    <i class="fa-solid fa-spinner fa-spin text-2xl mb-3 text-violet-500 block"></i>
+                    Fetching workspace links...
+                </div>`;
+
+            db.ref('hyperspace/links').on('value', snapshot => {
+                rawLinksData = snapshot.val() || {};
+                document.getElementById('last-updated').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                filterAndRenderLinks();
             });
         }
 
-        function showAddModal() {
-            if (currentUser.email !== "rileysargent2@gmail.com") {
-                showToast("Only Riley can add links");
+        function filterAndRenderLinks() {
+            const grid = document.getElementById('links-grid');
+            const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
+            const categoryVal = document.getElementById('category-filter').value;
+
+            grid.innerHTML = '';
+            let filteredKeys = Object.keys(rawLinksData);
+
+            // Filter logic
+            filteredKeys = filteredKeys.filter(key => {
+                const item = rawLinksData[key];
+                const matchesSearch = !searchVal || 
+                    item.name.toLowerCase().includes(searchVal) ||
+                    (item.description && item.description.toLowerCase().includes(searchVal)) ||
+                    (item.tags && item.tags.some(t => t.toLowerCase().includes(searchVal)));
+
+                const matchesCategory = categoryVal === 'all' || item.category === categoryVal;
+                return matchesSearch && matchesCategory;
+            });
+
+            document.getElementById('total-links').textContent = Object.keys(rawLinksData).length;
+
+            if (filteredKeys.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full border border-dashed border-zinc-800 rounded-3xl p-12 text-center text-zinc-500">
+                        <i class="fa-regular fa-folder-open text-3xl mb-3 text-zinc-600 block"></i>
+                        No resources found matching your current filters.
+                    </div>`;
                 return;
             }
+
+            filteredKeys.forEach(key => {
+                const link = rawLinksData[key];
+                const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(link.url)}&sz=64`;
+                const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+
+                const card = document.createElement('div');
+                card.className = "glass-card border border-zinc-800 rounded-3xl p-6 flex flex-col justify-between group";
+
+                const categoryBadge = link.category ? `
+                    <span class="text-[10px] font-semibold tracking-wider uppercase px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-400 border border-zinc-700/50">
+                        ${link.category}
+                    </span>` : '';
+
+                const tagsHtml = (link.tags && link.tags.length > 0) ? `
+                    <div class="flex flex-wrap gap-1.5 mt-3">
+                        ${link.tags.map(tag => `<span class="text-[11px] text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded-md border border-violet-500/10">#${tag}</span>`).join('')}
+                    </div>` : '';
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between gap-x-3 mb-3">
+                            <div class="flex items-center gap-x-3">
+                                <div class="w-10 h-10 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden shrink-0">
+                                    <img src="${faviconUrl}" class="w-5 h-5 object-contain" onError="this.src='https://cdn-icons-png.flaticon.com/512/1006/1006771.png'">
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg text-zinc-100 group-hover:text-violet-300 transition-colors line-clamp-1">${escapeHtml(link.name)}</h4>
+                                    <span class="text-xs text-zinc-500">${new Date(link.timestamp || Date.now()).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                            ${categoryBadge}
+                        </div>
+
+                        ${link.description ? `<p class="text-zinc-400 text-sm mb-4 line-clamp-2 leading-relaxed">${escapeHtml(link.description)}</p>` : ''}
+                        ${tagsHtml}
+                    </div>
+
+                    <div class="pt-6 mt-4 border-t border-zinc-800/60 flex items-center justify-between gap-x-2">
+                        <div class="flex items-center gap-x-2">
+                            <a href="${escapeHtml(link.url)}" target="_blank" class="px-4 py-2 bg-violet-600/10 hover:bg-violet-600/20 text-violet-400 rounded-xl text-xs font-semibold flex items-center gap-x-2 border border-violet-500/20 transition-all">
+                                <span>Visit</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                            </a>
+                            <button onclick="copyToClipboard('${escapeHtml(link.url)}')" title="Copy URL" class="p-2 text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl text-xs transition-colors">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+
+                        ${isAdmin ? `
+                        <div class="flex items-center gap-x-1">
+                            <button onclick="editLink('${key}')" class="p-2 text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl text-xs transition-colors" title="Edit">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteLink('${key}')" class="p-2 text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl text-xs transition-colors" title="Delete">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>` : ''}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // CRUD Operations
+        function showAddModal() {
+            if (currentUser.email !== ADMIN_EMAIL) return;
             editingLinkId = null;
-            document.getElementById('modal-title').textContent = "Add New Link";
+            document.getElementById('modal-title').textContent = "Add Resource";
             document.getElementById('link-name').value = '';
             document.getElementById('link-url').value = '';
             document.getElementById('link-desc').value = '';
+            document.getElementById('link-tags').value = '';
+            document.getElementById('link-category').value = 'development';
             document.getElementById('link-modal').classList.remove('hidden');
         }
 
@@ -314,76 +520,111 @@
         }
 
         function saveLink() {
-            if (currentUser.email !== "rileysargent2@gmail.com") return;
-                        const name = document.getElementById('link-name').value.trim();
+            if (currentUser.email !== ADMIN_EMAIL) return;
+
+            const name = document.getElementById('link-name').value.trim();
             const url = document.getElementById('link-url').value.trim();
             const desc = document.getElementById('link-desc').value.trim();
-                        if (!name || !url) {
-                showToast("Name and URL required");
+            const category = document.getElementById('link-category').value;
+            const tagsRaw = document.getElementById('link-tags').value;
+
+            if (!name || !url) {
+                showToast("Name and valid URL are required", "error");
                 return;
             }
-                        const linkData = {
+
+            const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(t => t.length > 0) : [];
+
+            const linkData = {
                 name,
                 url,
                 description: desc,
+                category,
+                tags,
                 addedBy: currentUser.email,
                 timestamp: Date.now()
             };
-                        if (editingLinkId) {
-                db.ref('hyperspace/links/' + editingLinkId).update(linkData).then(() => {
-                    showToast("Link updated");
-                    closeLinkModal();
-                });
+
+            if (editingLinkId) {
+                db.ref('hyperspace/links/' + editingLinkId).update(linkData)
+                    .then(() => {
+                        showToast("Resource updated successfully");
+                        closeLinkModal();
+                    });
             } else {
-                db.ref('hyperspace/links').push(linkData).then(() => {
-                    showToast("Link added");
-                    closeLinkModal();
-                });
+                db.ref('hyperspace/links').push(linkData)
+                    .then(() => {
+                        showToast("Resource added to workspace");
+                        closeLinkModal();
+                    });
             }
         }
 
         function editLink(key) {
-            if (currentUser.email !== "rileysargent2@gmail.com") return;
+            if (currentUser.email !== ADMIN_EMAIL) return;
             editingLinkId = key;
-            db.ref('hyperspace/links/' + key).once('value', snap => {
-                const link = snap.val();
-                document.getElementById('modal-title').textContent = "Edit Link";
-                document.getElementById('link-name').value = link.name;
-                document.getElementById('link-url').value = link.url;
-                document.getElementById('link-desc').value = link.description || '';
-                document.getElementById('link-modal').classList.remove('hidden');
-            });
+            const link = rawLinksData[key];
+            if (!link) return;
+
+            document.getElementById('modal-title').textContent = "Edit Resource";
+            document.getElementById('link-name').value = link.name || '';
+            document.getElementById('link-url').value = link.url || '';
+            document.getElementById('link-desc').value = link.description || '';
+            document.getElementById('link-category').value = link.category || 'development';
+            document.getElementById('link-tags').value = link.tags ? link.tags.join(', ') : '';
+            document.getElementById('link-modal').classList.remove('hidden');
         }
 
         function deleteLink(key) {
-            if (currentUser.email !== "rileysargent2@gmail.com") return;
-            if (confirm("Delete this link?")) {
-                db.ref('hyperspace/links/' + key).remove().then(() => showToast("Link deleted"));
+            if (currentUser.email !== ADMIN_EMAIL) return;
+            if (confirm("Are you sure you want to remove this resource?")) {
+                db.ref('hyperspace/links/' + key).remove()
+                    .then(() => showToast("Resource deleted"));
             }
         }
 
-        function showToast(message) {
+        // Utility Helpers
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("URL copied to clipboard!");
+            });
+        }
+
+        function showToast(message, type = "info") {
             const toast = document.getElementById('toast');
-            document.getElementById('toast-text').textContent = message;
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastText.textContent = message;
+            toastIcon.innerHTML = type === "error" 
+                ? `<i class="fa-solid fa-circle-exclamation text-red-400"></i>`
+                : `<i class="fa-solid fa-circle-check text-emerald-400"></i>`;
+
             toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 2800);
+            setTimeout(() => toast.classList.add('hidden'), 3000);
         }
 
-        function logout() {
-            if (auth) auth.signOut();
-            location.reload();
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
+        // Initialization Listener
         window.onload = function() {
             initFirebase();
             auth.onAuthStateChanged(user => {
                 if (user) {
                     currentUser = user;
                     handleAuthSuccess();
+                } else {
+                    document.getElementById('auth-screen').classList.remove('hidden');
+                    document.getElementById('dashboard').classList.add('hidden');
+                    document.getElementById('user-info').classList.add('hidden');
                 }
             });
         };
 
+        // Expose function handlers globally
         window.googleSignIn = googleSignIn;
         window.emailLogin = emailLogin;
         window.emailRegister = emailRegister;
@@ -395,6 +636,8 @@
         window.saveLink = saveLink;
         window.editLink = editLink;
         window.deleteLink = deleteLink;
+        window.copyToClipboard = copyToClipboard;
+        window.filterAndRenderLinks = filterAndRenderLinks;
     </script>
 </body>
 </html>
