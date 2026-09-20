@@ -1,0 +1,66 @@
+{
+  "rules": {
+    "rooms": {
+      ".read": true,
+      ".write": true
+    },
+    "game_directory": {
+      ".read": true,
+      ".write": true
+    },
+    "hyperspace": {
+      "links": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.email == 'rileysargent2@gmail.com'"
+      },
+      "users": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "accounts": {
+      ".read": "auth != null && auth.token.email == 'rileysargent2@gmail.com'",
+      ".write": "auth != null && auth.token.email == 'rileysargent2@gmail.com'",
+      "$uid": {
+        ".read": "auth != null && (auth.uid == $uid || auth.token.email == 'rileysargent2@gmail.com')",
+        ".write": "auth != null && (auth.uid == $uid || auth.token.email == 'rileysargent2@gmail.com')"
+      }
+    },
+    "thp_data": {
+      "projects": {
+        ".read": true,
+        ".write": "auth != null && auth.token.email == 'rileysargent2@gmail.com'",
+        "$project": {
+          ".read": true,
+          ".write": "auth != null && auth.token.email == 'rileysargent2@gmail.com'"
+        }
+      },
+      "launcher": {
+        ".read": true,
+        ".write": "auth != null && auth.token.email == 'rileysargent2@gmail.com'"
+      },
+      "announcements": {
+        ".read": true,
+        ".write": "auth != null && auth.token.email == 'rileysargent2@gmail.com'"
+      }
+    },
+    "game_data": {
+      "$game": {
+        "players": {
+          "$uid": {
+            ".read": "auth != null && (auth.uid == $uid || auth.token.email == 'rileysargent2@gmail.com')",
+            ".write": "auth != null && (auth.uid == $uid || auth.token.email == 'rileysargent2@gmail.com')"
+          }
+        },
+        "achievements": {
+          ".read": true,
+          ".write": "auth != null && auth.token.email == 'rileysargent2@gmail.com'"
+        },
+        "leaderboards": {
+          ".read": true,
+          ".write": "auth != null && auth.token.email == 'rileysargent2@gmail.com'"
+        }
+      }
+    }
+  }
+}

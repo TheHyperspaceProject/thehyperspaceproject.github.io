@@ -1,3 +1,15 @@
-<head>
-    <meta http-equiv="refresh" content="0; url=dashboard.html" />
-</head>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>THP Launcher</title><link rel="stylesheet" href="shared/css/base.css"><link rel="stylesheet" href="shared/css/launcher.css"></head>
+<body>
+<header class="topbar"><div class="brand"><div class="fox">🦊</div><div>The Hyperspace Project</div></div><div><span id="account" class="pill">Guest</span> <button id="login" class="btn">Connect Firebase</button></div></header>
+<div class="shell"><aside class="side"><div class="nav"><button class="active" data-section="home">Home</button><button data-section="games">Games</button><button data-section="projects">Projects</button><button data-section="account">Account</button></div></aside>
+<main class="main">
+<section id="home"><div class="hero"><div class="card"><span class="pill">THP WEB ECOSYSTEM</span><h1>Everything THP.<br>One launcher.</h1><p class="muted">Games, projects, accounts and shared services in one web-first dashboard.</p><div class="actions"><button class="btn primary" id="playFeatured">Launch Factory Panic</button></div></div><div class="card"><h3>System status</h3><p class="status">● Launcher online</p><p class="muted">Firebase: <span id="firebaseState">Not configured</span></p><p class="muted">Games: 3</p><p class="muted">Projects: 1</p></div></div><h2>Games</h2><div id="gameGrid" class="grid games"></div></section>
+<section id="games" class="hidden"><h2>Games</h2><div id="gamesGrid2" class="grid games"></div></section>
+<section id="projects" class="hidden"><h2>Projects</h2><div id="projectsGrid" class="grid games"></div></section>
+<section id="account" class="hidden"><h2>Account</h2><div class="card"><h3 id="accountName">Guest</h3><p class="muted">Your THP account is shared across the ecosystem.</p><button class="btn" id="accountAction">Connect</button></div></section>
+</main></div>
+<script type="module" src="shared/js/firebase-config.js"></script>
+<script type="module" src="launcher.js"></script>
+</body></html>

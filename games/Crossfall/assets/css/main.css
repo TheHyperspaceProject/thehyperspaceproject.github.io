@@ -1,0 +1,1 @@
+.select{display:flex;flex-wrap:wrap;gap:10px}.char-card{padding:10px 12px;border:1px solid #343c62;border-radius:12px;background:#10162a;cursor:pointer}.char-card.selected{border-color:#4ee7ff}

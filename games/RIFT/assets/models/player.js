@@ -1,0 +1,1 @@
+export const model={id:"rift-player",name:"RIFT Player",speed:7,health:100};

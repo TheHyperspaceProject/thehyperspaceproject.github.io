@@ -1,0 +1,1 @@
+export const weapon={id:"pulse-rifle",name:"Pulse Rifle",damage:12,magazine:12};

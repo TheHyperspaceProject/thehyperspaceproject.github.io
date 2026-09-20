@@ -1,0 +1,59 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'rileysargent2@gmail.com';
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    match /accounts/{uid} {
+      allow read, write: if isAdmin() || isOwner(uid);
+    }
+
+    match /thp_data/projects/{project} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /thp_data/launcher {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /thp_data/announcements {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /game_data/{game}/players/{uid} {
+      allow read, write: if isAdmin() || isOwner(uid);
+    }
+
+    match /game_data/{game}/achievements/{achievement} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /game_data/{game}/leaderboards/{entry} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /hyperspace/{document=**} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /{document=**} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}
