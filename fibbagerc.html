@@ -1,0 +1,2478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fibbagerc — The Hyperspace Project</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+
+<!-- QRCode generator -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+:root{
+    --bg:#070914;
+    --panel:#11152a;
+    --panel2:#191e38;
+    --pink:#ff3ca6;
+    --purple:#7947ff;
+    --cyan:#36e7ff;
+    --green:#42ed9a;
+    --yellow:#ffd84d;
+    --red:#ff4d69;
+    --text:#f8f8ff;
+    --muted:#9da5c7;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    color:var(--text);
+    font-family:
+        Inter,
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background:
+        radial-gradient(
+            circle at 50% -15%,
+            #363c70 0%,
+            #151932 30%,
+            #080a15 75%
+        );
+}
+
+button,
+input{
+    font:inherit;
+}
+
+button{
+    border:0;
+    border-radius:13px;
+    padding:13px 20px;
+    color:white;
+    font-weight:900;
+    cursor:pointer;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--pink),
+            var(--purple)
+        );
+
+    box-shadow:
+        0 7px 25px #0008;
+
+    transition:
+        transform .12s,
+        filter .12s;
+}
+
+button:hover{
+    filter:brightness(1.12);
+    transform:translateY(-2px);
+}
+
+button:active{
+    transform:translateY(0);
+}
+
+button.secondary{
+    background:#292f50;
+}
+
+button.green{
+    background:
+        linear-gradient(
+            135deg,
+            #16c879,
+            #178bd8
+        );
+}
+
+button.red{
+    background:#a52b4d;
+}
+
+button:disabled{
+    opacity:.45;
+    cursor:not-allowed;
+    transform:none;
+}
+
+.hidden{
+    display:none!important;
+}
+
+#app{
+    width:min(1100px,94vw);
+    margin:auto;
+    padding:25px 0 60px;
+}
+
+.logo{
+    text-align:center;
+    font-size:
+        clamp(
+            42px,
+            9vw,
+            82px
+        );
+
+    font-weight:1000;
+    font-style:italic;
+    letter-spacing:-6px;
+
+    text-shadow:
+        0 5px 0 #000,
+        0 0 35px #ff3ca677;
+}
+
+.logo span{
+    color:var(--pink);
+}
+
+.subtitle{
+    text-align:center;
+    color:var(--muted);
+    margin-top:-12px;
+}
+
+.card{
+    max-width:850px;
+    margin:20px auto;
+
+    padding:26px;
+
+    border-radius:23px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #171b35f2,
+            #0d1020f2
+        );
+
+    border:
+        1px solid #ffffff15;
+
+    box-shadow:
+        0 25px 80px #0009;
+}
+
+.center{
+    text-align:center;
+}
+
+.row{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    align-items:center;
+    flex-wrap:wrap;
+}
+
+.field{
+    width:min(450px,100%);
+    margin:13px auto;
+}
+
+input{
+    width:100%;
+    padding:15px;
+
+    border-radius:13px;
+    border:2px solid #343b60;
+
+    outline:none;
+
+    background:#080a13;
+    color:white;
+}
+
+input:focus{
+    border-color:var(--cyan);
+}
+
+.eyebrow{
+    color:var(--cyan);
+    text-transform:uppercase;
+    font-size:.78rem;
+    font-weight:1000;
+    letter-spacing:2px;
+}
+
+.question{
+    margin:20px 0;
+
+    font-size:
+        clamp(
+            27px,
+            5vw,
+            46px
+        );
+
+    line-height:1.12;
+    font-weight:1000;
+}
+
+.room{
+    font-size:
+        clamp(
+            42px,
+            9vw,
+            65px
+        );
+
+    color:var(--yellow);
+    font-weight:1000;
+    letter-spacing:10px;
+}
+
+.players{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:9px;
+    margin:20px 0;
+}
+
+.player{
+    background:#202641;
+    border-radius:11px;
+    padding:9px 13px;
+}
+
+.host{
+    color:var(--pink);
+    font-size:.7rem;
+    font-weight:1000;
+    margin-left:5px;
+}
+
+#qr{
+    display:inline-block;
+    background:white;
+    padding:12px;
+    border-radius:13px;
+    margin-top:15px;
+}
+
+.answerGrid{
+    display:grid;
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(230px,1fr)
+        );
+
+    gap:13px;
+}
+
+.answer{
+    min-height:95px;
+
+    text-align:left;
+
+    background:#202644;
+
+    border:
+        1px solid #ffffff12;
+
+    border-radius:16px;
+
+    padding:18px;
+
+    color:white;
+}
+
+.answer:hover{
+    background:#2c345b;
+}
+
+.answerAuthor{
+    display:block;
+    color:var(--muted);
+    font-size:.8rem;
+    margin-bottom:7px;
+}
+
+.timer{
+    height:9px;
+    border-radius:10px;
+    overflow:hidden;
+    background:#292e49;
+    margin-top:12px;
+}
+
+.timer i{
+    display:block;
+    width:100%;
+    height:100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            var(--pink),
+            var(--cyan)
+        );
+
+    transition:width 1s linear;
+}
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.pill{
+    background:#292f50;
+    border-radius:999px;
+    padding:7px 13px;
+}
+
+.score{
+    color:var(--yellow);
+    font-size:2rem;
+    font-weight:1000;
+}
+
+.scoreRow{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    padding:15px;
+
+    margin:8px 0;
+
+    border-radius:13px;
+
+    background:#1d2340;
+}
+
+.small{
+    color:var(--muted);
+    font-size:.9rem;
+}
+
+.toast{
+    position:fixed;
+
+    left:50%;
+    bottom:20px;
+
+    transform:translateX(-50%);
+
+    padding:13px 20px;
+
+    border-radius:13px;
+
+    background:#252b4b;
+
+    box-shadow:
+        0 10px 40px #000a;
+
+    z-index:999;
+}
+
+.status{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+
+    color:var(--green);
+    font-weight:900;
+}
+
+.statusDot{
+    width:9px;
+    height:9px;
+    border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 10px var(--green);
+}
+
+@media(max-width:600px){
+
+    .card{
+        padding:19px;
+    }
+
+    button{
+        width:100%;
+    }
+
+    .row button{
+        width:auto;
+    }
+
+    .room{
+        letter-spacing:6px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+
+    <div class="logo">
+        FIBBAGE<span>RC</span>
+    </div>
+
+    <div class="subtitle">
+        The Hyperspace Project · Multiplayer bluffing game
+    </div>
+
+
+    <!-- HOME -->
+
+    <section id="home" class="card center">
+
+        <div class="eyebrow">
+            FIBBAGERC
+        </div>
+
+        <h1>
+            Lie convincingly.
+            Catch your friends.
+        </h1>
+
+        <p class="small">
+            Create a room and invite everyone with the QR code.
+        </p>
+
+        <div class="field">
+            <input
+                id="playerName"
+                maxlength="18"
+                placeholder="Your player name"
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="row">
+
+            <button onclick="createRoom()">
+                CREATE GAME
+            </button>
+
+            <button
+                class="secondary"
+                onclick="showJoin()"
+            >
+                JOIN GAME
+            </button>
+
+        </div>
+
+        <p class="small">
+            <span class="status">
+                <span class="statusDot"></span>
+                Hyperspace-R connected
+            </span>
+        </p>
+
+    </section>
+
+
+    <!-- JOIN -->
+
+    <section
+        id="join"
+        class="card center hidden"
+    >
+
+        <div class="eyebrow">
+            JOIN GAME
+        </div>
+
+        <h2>
+            Enter the room code
+        </h2>
+
+        <div class="field">
+
+            <input
+                id="joinCode"
+                maxlength="6"
+                placeholder="ABC123"
+                autocomplete="off"
+
+                style="
+                    text-align:center;
+                    text-transform:uppercase;
+                    font-size:28px;
+                    letter-spacing:7px;
+                "
+            >
+
+        </div>
+
+        <div class="field">
+
+            <input
+                id="joinName"
+                maxlength="18"
+                placeholder="Your player name"
+                autocomplete="off"
+            >
+
+        </div>
+
+        <div class="row">
+
+            <button onclick="joinRoom()">
+                JOIN
+            </button>
+
+            <button
+                class="secondary"
+                onclick="goHome()"
+            >
+                BACK
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- LOBBY -->
+
+    <section
+        id="lobby"
+        class="card center hidden"
+    >
+
+        <div class="eyebrow">
+            ROOM CODE
+        </div>
+
+        <div
+            id="roomCode"
+            class="room"
+        >
+        </div>
+
+        <div id="qr"></div>
+
+        <p class="small">
+            Scan this QR code to join the game.
+        </p>
+
+        <div
+            id="players"
+            class="players"
+        >
+        </div>
+
+        <div class="row">
+
+            <button
+                id="startButton"
+                onclick="startGame()"
+            >
+                START GAME
+            </button>
+
+            <button
+                class="secondary"
+                onclick="copyGameLink()"
+            >
+                COPY LINK
+            </button>
+
+        </div>
+
+        <p
+            id="lobbyMessage"
+            class="small"
+        ></p>
+
+    </section>
+
+
+    <!-- GAME -->
+
+    <section
+        id="game"
+        class="card hidden"
+    >
+
+        <div class="topbar">
+
+            <span
+                id="roundText"
+                class="pill"
+            >
+                ROUND 1 / 5
+            </span>
+
+            <span
+                id="timerText"
+                class="pill"
+            >
+                25s
+            </span>
+
+        </div>
+
+        <div class="timer">
+            <i id="timerBar"></i>
+        </div>
+
+        <div id="gameContent"></div>
+
+    </section>
+
+
+    <!-- RESULTS -->
+
+    <section
+        id="results"
+        class="card center hidden"
+    >
+
+        <div class="eyebrow">
+            ROUND RESULTS
+        </div>
+
+        <h1>
+            Scores
+        </h1>
+
+        <div id="resultsList"></div>
+
+        <button
+            id="nextButton"
+            onclick="nextRound()"
+        >
+            NEXT ROUND
+        </button>
+
+    </section>
+
+
+    <!-- END -->
+
+    <section
+        id="end"
+        class="card center hidden"
+    >
+
+        <div class="eyebrow">
+            FINAL RESULTS
+        </div>
+
+        <h1 id="winnerText">
+        </h1>
+
+        <div id="finalList"></div>
+
+        <button onclick="goHome()">
+            PLAY AGAIN
+        </button>
+
+    </section>
+
+</div>
+
+
+<div
+    id="toast"
+    class="toast hidden"
+></div>
+
+
+<script>
+
+/*
+===========================================================
+ FIREBASE — HYPERSPACE-R
+===========================================================
+*/
+
+const firebaseConfig = {
+
+    projectId:
+        "hyperspace-r",
+
+    authDomain:
+        "hyperspace-r.firebaseapp.com",
+
+    storageBucket:
+        "hyperspace-r.firebasestorage.app",
+
+    appId:
+        "1:1050495683444:web:4a3c2b294542cb8d313a21",
+
+    databaseURL:
+        "https://hyperspace-r-default-rtdb.europe-west1.firebasedatabase.app"
+
+};
+
+
+firebase.initializeApp(
+    firebaseConfig
+);
+
+
+const db =
+    firebase.database();
+
+
+/*
+===========================================================
+ CONSTANTS
+===========================================================
+*/
+
+const PUBLIC_URL =
+    "https://thehyperspaceproject.github.io/fibbagerc.html";
+
+
+const QUESTIONS = [
+
+    {
+        question:
+            "The shortest war in recorded history lasted approximately ___ minutes.",
+
+        truth:
+            "38",
+
+        lies:[
+            "40",
+            "45",
+            "12"
+        ]
+    },
+
+    {
+        question:
+            "In 1896, a man in London was fined for carrying a ___ without a permit.",
+
+        truth:
+            "cannon",
+
+        lies:[
+            "ladder",
+            "umbrella",
+            "piano"
+        ]
+    },
+
+    {
+        question:
+            "The world's first webcam was pointed at a ___ so researchers could check if it was empty.",
+
+        truth:
+            "coffee pot",
+
+        lies:[
+            "printer",
+            "fish tank",
+            "fridge"
+        ]
+    },
+
+    {
+        question:
+            "A group of flamingos is officially called a ___ .",
+
+        truth:
+            "flamboyance",
+
+        lies:[
+            "flockery",
+            "pinkness",
+            "flambush"
+        ]
+    },
+
+    {
+        question:
+            "The inventor of the Pringles can asked to have some of his ashes buried inside a ___ .",
+
+        truth:
+            "Pringles can",
+
+        lies:[
+            "time capsule",
+            "golf ball",
+            "violin"
+        ]
+    },
+
+    {
+        question:
+            "Before becoming a famous scientist, Isaac Newton spent time trying to turn ___ into gold.",
+
+        truth:
+            "mercury",
+
+        lies:[
+            "sand",
+            "salt",
+            "glass"
+        ]
+    },
+
+    {
+        question:
+            "A snail can sleep for up to ___ years.",
+
+        truth:
+            "3",
+
+        lies:[
+            "1",
+            "7",
+            "12"
+        ]
+    },
+
+    {
+        question:
+            "In Japan, there is a train station that has no ___ .",
+
+        truth:
+            "road access",
+
+        lies:[
+            "ticket office",
+            "name",
+            "platform"
+        ]
+    },
+
+    {
+        question:
+            "The first computer mouse was made from ___ .",
+
+        truth:
+            "wood",
+
+        lies:[
+            "copper",
+            "bamboo",
+            "plastic"
+        ]
+    },
+
+    {
+        question:
+            "Some turtles can breathe through their ___ .",
+
+        truth:
+            "butts",
+
+        lies:[
+            "shells",
+            "eyes",
+            "tails"
+        ]
+    },
+
+    {
+        question:
+            "A cloud can weigh more than ___ elephants.",
+
+        truth:
+            "100",
+
+        lies:[
+            "10",
+            "1,000",
+            "25"
+        ]
+    },
+
+    {
+        question:
+            "The dot over a lowercase i or j is called a ___ .",
+
+        truth:
+            "tittle",
+
+        lies:[
+            "tibble",
+            "pointlet",
+            "minidrop"
+        ]
+    }
+
+];
+
+
+/*
+===========================================================
+ LOCAL CLIENT STATE
+===========================================================
+*/
+
+let roomCode = null;
+
+let playerId = null;
+
+let playerName = null;
+
+let isHost = false;
+
+let roomRef = null;
+
+let roomListener = null;
+
+let timer = null;
+
+let currentRoom = null;
+
+let hasSubmitted = false;
+
+let hasVoted = false;
+
+
+/*
+===========================================================
+ HELPERS
+===========================================================
+*/
+
+function $(id){
+
+    return document.getElementById(id);
+
+}
+
+
+function show(id){
+
+    [
+        "home",
+        "join",
+        "lobby",
+        "game",
+        "results",
+        "end"
+    ].forEach(screen => {
+
+        $(screen)
+            .classList
+            .toggle(
+                "hidden",
+                screen !== id
+            );
+
+    });
+
+}
+
+
+function toast(message){
+
+    const element =
+        $("toast");
+
+    element.textContent =
+        message;
+
+    element.classList.remove(
+        "hidden"
+    );
+
+    setTimeout(() => {
+
+        element.classList.add(
+            "hidden"
+        );
+
+    },2300);
+
+}
+
+
+function escapeHTML(value){
+
+    return String(value)
+        .replace(
+            /[&<>"']/g,
+            char => ({
+
+                "&":"&amp;",
+                "<":"&lt;",
+                ">":"&gt;",
+                '"':"&quot;",
+                "'":"&#39;"
+
+            })[char]
+        );
+
+}
+
+
+function generateRoomCode(){
+
+    const chars =
+        "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+    let result = "";
+
+    for(let i=0;i<6;i++){
+
+        result +=
+            chars[
+                Math.floor(
+                    Math.random() *
+                    chars.length
+                )
+            ];
+
+    }
+
+    return result;
+
+}
+
+
+function generatePlayerId(){
+
+    return (
+        "p_" +
+        Math.random()
+            .toString(36)
+            .slice(2) +
+        Date.now()
+    );
+
+}
+
+
+function gameURL(){
+
+    return (
+        PUBLIC_URL +
+        "?room=" +
+        encodeURIComponent(
+            roomCode
+        )
+    );
+
+}
+
+
+/*
+===========================================================
+ HOME / JOIN
+===========================================================
+*/
+
+function goHome(){
+
+    if(roomListener){
+
+        roomRef.off(
+            "value",
+            roomListener
+        );
+
+    }
+
+    roomListener = null;
+
+    roomRef = null;
+
+    currentRoom = null;
+
+    show("home");
+
+}
+
+
+function showJoin(){
+
+    show("join");
+
+}
+
+
+function createRoom(){
+
+    const name =
+        $("playerName")
+            .value
+            .trim() ||
+        "Host";
+
+
+    playerName =
+        name.slice(0,18);
+
+
+    playerId =
+        generatePlayerId();
+
+
+    roomCode =
+        generateRoomCode();
+
+
+    isHost = true;
+
+
+    roomRef =
+        db.ref(
+            "rooms/" +
+            roomCode
+        );
+
+
+    const player = {
+
+        name:
+            playerName,
+
+        score:
+            0,
+
+        connected:
+            true,
+
+        host:
+            true
+
+    };
+
+
+    const room = {
+
+        code:
+            roomCode,
+
+        host:
+            playerId,
+
+        status:
+            "lobby",
+
+        round:
+            0,
+
+        question:
+            null,
+
+        players:{
+            [playerId]:
+                player
+        },
+
+        submissions:{},
+
+        votes:{}
+
+    };
+
+
+    roomRef
+        .set(room)
+        .then(() => {
+
+            localStorage.setItem(
+                "fibbagerc_player",
+                JSON.stringify({
+                    id:playerId,
+                    name:playerName,
+                    room:roomCode
+                })
+            );
+
+
+            listenToRoom();
+
+            toast(
+                "Game created!"
+            );
+
+        })
+        .catch(error => {
+
+            console.error(error);
+
+            toast(
+                "Could not create the room."
+            );
+
+        });
+
+}
+
+
+function joinRoom(){
+
+    const code =
+        $("joinCode")
+            .value
+            .trim()
+            .toUpperCase();
+
+
+    const name =
+        $("joinName")
+            .value
+            .trim() ||
+        "Player";
+
+
+    if(code.length !== 6){
+
+        toast(
+            "Enter a 6-character room code."
+        );
+
+        return;
+
+    }
+
+
+    playerName =
+        name.slice(0,18);
+
+
+    playerId =
+        generatePlayerId();
+
+
+    roomCode =
+        code;
+
+
+    roomRef =
+        db.ref(
+            "rooms/" +
+            roomCode
+        );
+
+
+    roomRef
+        .once("value")
+        .then(snapshot => {
+
+            const room =
+                snapshot.val();
+
+
+            if(!room){
+
+                toast(
+                    "That room does not exist."
+                );
+
+                return;
+
+            }
+
+
+            isHost = false;
+
+
+            return roomRef
+                .child(
+                    "players/" +
+                    playerId
+                )
+                .set({
+
+                    name:
+                        playerName,
+
+                    score:
+                        0,
+
+                    connected:
+                        true,
+
+                    host:
+                        false
+
+                });
+
+        })
+        .then(result => {
+
+            if(result === undefined)
+                return;
+
+
+            localStorage.setItem(
+                "fibbagerc_player",
+                JSON.stringify({
+                    id:playerId,
+                    name:playerName,
+                    room:roomCode
+                })
+            );
+
+
+            listenToRoom();
+
+        })
+        .catch(error => {
+
+            console.error(error);
+
+            toast(
+                "Could not join the room."
+            );
+
+        });
+
+}
+
+
+/*
+===========================================================
+ REALTIME ROOM LISTENER
+===========================================================
+*/
+
+function listenToRoom(){
+
+    if(roomListener){
+
+        roomRef.off(
+            "value",
+            roomListener
+        );
+
+    }
+
+
+    roomListener =
+        snapshot => {
+
+            const room =
+                snapshot.val();
+
+
+            if(!room){
+
+                toast(
+                    "The room was closed."
+                );
+
+                goHome();
+
+                return;
+
+            }
+
+
+            currentRoom =
+                room;
+
+
+            renderRoom(room);
+
+        };
+
+
+    roomRef.on(
+        "value",
+        roomListener
+    );
+
+}
+
+
+/*
+===========================================================
+ RENDER ROOM
+===========================================================
+*/
+
+function renderRoom(room){
+
+    if(room.status === "lobby"){
+
+        renderLobby(room);
+
+        return;
+
+    }
+
+
+    if(room.status === "answering"){
+
+        renderAnswering(room);
+
+        return;
+
+    }
+
+
+    if(room.status === "voting"){
+
+        renderVoting(room);
+
+        return;
+
+    }
+
+
+    if(room.status === "results"){
+
+        renderResults(room);
+
+        return;
+
+    }
+
+
+    if(room.status === "finished"){
+
+        renderFinished(room);
+
+        return;
+
+    }
+
+}
+
+
+/*
+===========================================================
+ LOBBY
+===========================================================
+*/
+
+function renderLobby(room){
+
+    show("lobby");
+
+
+    $("roomCode")
+        .textContent =
+        room.code;
+
+
+    $("players").innerHTML =
+        Object.entries(
+            room.players || {}
+        )
+        .map(
+            ([id,player]) => `
+
+                <span class="player">
+
+                    ${escapeHTML(
+                        player.name
+                    )}
+
+                    ${
+                        id === room.host
+                        ?
+                        '<span class="host">HOST</span>'
+                        :
+                        ''
+                    }
+
+                </span>
+
+            `
+        )
+        .join("");
+
+
+    $("startButton")
+        .classList
+        .toggle(
+            "hidden",
+            !isHost
+        );
+
+
+    $("lobbyMessage")
+        .textContent =
+        isHost
+        ?
+        "You're the host. Start whenever everyone is ready."
+        :
+        "Waiting for the host to start the game.";
+
+
+    generateQR();
+
+}
+
+
+/*
+===========================================================
+ QR
+===========================================================
+*/
+
+function generateQR(){
+
+    const container =
+        $("qr");
+
+
+    container.innerHTML =
+        "";
+
+
+    if(
+        typeof QRCode ===
+        "undefined"
+    ){
+
+        container.innerHTML =
+            "<b>QR unavailable</b>";
+
+        return;
+
+    }
+
+
+    new QRCode(
+        container,
+        {
+
+            text:
+                gameURL(),
+
+            width:
+                220,
+
+            height:
+                220,
+
+            colorDark:
+                "#000000",
+
+            colorLight:
+                "#ffffff",
+
+            correctLevel:
+                QRCode.CorrectLevel.H
+
+        }
+    );
+
+}
+
+
+function copyGameLink(){
+
+    const url =
+        gameURL();
+
+
+    if(
+        navigator.clipboard
+    ){
+
+        navigator.clipboard
+            .writeText(url);
+
+    }
+
+
+    toast(
+        "Game link copied!"
+    );
+
+}
+
+
+/*
+===========================================================
+ START GAME
+===========================================================
+*/
+
+function startGame(){
+
+    if(!isHost)
+        return;
+
+
+    const question =
+        QUESTIONS[
+            Math.floor(
+                Math.random() *
+                QUESTIONS.length
+            )
+        ];
+
+
+    roomRef.update({
+
+        status:
+            "answering",
+
+        round:
+            1,
+
+        question:{
+            text:
+                question.question,
+
+            truth:
+                question.truth,
+
+            lies:
+                question.lies
+        },
+
+        submissions:{},
+
+        votes:{}
+
+    });
+
+}
+
+
+/*
+===========================================================
+ ANSWERING
+===========================================================
+*/
+
+function renderAnswering(room){
+
+    show("game");
+
+
+    hasSubmitted =
+        !!(
+            room.submissions &&
+            room.submissions[playerId]
+        );
+
+
+    $("roundText")
+        .textContent =
+        "ROUND " +
+        room.round +
+        " / 5";
+
+
+    $("timerText")
+        .textContent =
+        "ANSWER";
+
+
+    $("timerBar")
+        .style.width =
+        "100%";
+
+
+    if(hasSubmitted){
+
+        $("gameContent")
+            .innerHTML = `
+
+                <div class="center">
+
+                    <div class="eyebrow">
+                        ANSWER SUBMITTED
+                    </div>
+
+                    <h1>
+                        Nice lie. 😈
+                    </h1>
+
+                    <p class="small">
+                        Waiting for everyone else...
+                    </p>
+
+                </div>
+
+            `;
+
+        return;
+
+    }
+
+
+    $("gameContent")
+        .innerHTML = `
+
+            <div class="eyebrow">
+                MAKE UP A LIE
+            </div>
+
+            <div class="question">
+
+                ${escapeHTML(
+                    room.question.text
+                ).replace(
+                    "___",
+                    '<span style="color:var(--pink)">_____</span>'
+                )}
+
+            </div>
+
+            <div class="field">
+
+                <input
+                    id="lieInput"
+                    maxlength="80"
+                    placeholder="Type a convincing lie..."
+                    autocomplete="off"
+                >
+
+            </div>
+
+            <div class="center">
+
+                <button
+                    onclick="submitAnswer()"
+                >
+                    SUBMIT LIE
+                </button>
+
+            </div>
+
+        `;
+
+}
+
+
+/*
+===========================================================
+ SUBMIT ANSWER
+===========================================================
+*/
+
+function submitAnswer(){
+
+    if(!currentRoom)
+        return;
+
+
+    const input =
+        $("lieInput");
+
+
+    const text =
+        input.value.trim();
+
+
+    if(!text){
+
+        toast(
+            "You need to enter a lie!"
+        );
+
+        return;
+
+    }
+
+
+    roomRef
+        .child(
+            "submissions/" +
+            playerId
+        )
+        .set({
+
+            text:
+                text,
+
+            player:
+                playerName,
+
+            timestamp:
+                firebase.database.ServerValue.TIMESTAMP
+
+        })
+        .then(() => {
+
+            hasSubmitted = true;
+
+            toast(
+                "Lie submitted!"
+            );
+
+        });
+
+}
+
+
+/*
+===========================================================
+ HOST: CHECK ANSWERS
+===========================================================
+*/
+
+function allPlayersSubmitted(room){
+
+    const players =
+        Object.keys(
+            room.players || {}
+        );
+
+
+    const submissions =
+        Object.keys(
+            room.submissions || {}
+        );
+
+
+    return (
+        players.length > 0 &&
+        players.every(
+            id =>
+                submissions.includes(id)
+        )
+    );
+
+}
+
+
+/*
+===========================================================
+ VOTING
+===========================================================
+*/
+
+function renderVoting(room){
+
+    show("game");
+
+
+    hasVoted =
+        !!(
+            room.votes &&
+            room.votes[playerId]
+        );
+
+
+    $("roundText")
+        .textContent =
+        "ROUND " +
+        room.round +
+        " / 5";
+
+
+    $("timerText")
+        .textContent =
+        "VOTE";
+
+
+    $("timerBar")
+        .style.width =
+        "100%";
+
+
+    const answers = [];
+
+
+    /*
+     * True answer.
+     */
+
+    answers.push({
+
+        id:
+            "truth",
+
+        text:
+            room.question.truth,
+
+        author:
+            "THE TRUTH",
+
+        truth:
+            true
+
+    });
+
+
+    /*
+     * Player lies.
+     */
+
+    Object.entries(
+        room.submissions || {}
+    )
+    .forEach(
+        ([id,submission]) => {
+
+            answers.push({
+
+                id:
+                    id,
+
+                text:
+                    submission.text,
+
+                author:
+                    submission.player,
+
+                truth:
+                    false
+
+            });
+
+        }
+    );
+
+
+    /*
+     * Shuffle.
+     */
+
+    answers.sort(
+        () =>
+            Math.random() - .5
+    );
+
+
+    if(hasVoted){
+
+        $("gameContent")
+            .innerHTML = `
+
+                <div class="center">
+
+                    <div class="eyebrow">
+                        VOTE LOCKED
+                    </div>
+
+                    <h1>
+                        Waiting for everyone...
+                    </h1>
+
+                </div>
+
+            `;
+
+        return;
+
+    }
+
+
+    $("gameContent")
+        .innerHTML = `
+
+            <div class="eyebrow">
+                WHICH ANSWER IS TRUE?
+            </div>
+
+            <div class="question">
+
+                ${escapeHTML(
+                    room.question.text
+                ).replace(
+                    "___",
+                    "_____"
+                )}
+
+            </div>
+
+            <div class="answerGrid">
+
+                ${
+                    answers
+                    .map(
+                        answer => `
+
+                            <button
+                                class="answer"
+                                onclick="castVote('${answer.id}')"
+                            >
+
+                                <span class="answerAuthor">
+
+                                    ${escapeHTML(
+                                        answer.author
+                                    )}
+
+                                </span>
+
+                                ${escapeHTML(
+                                    answer.text
+                                )}
+
+                            </button>
+
+                        `
+                    )
+                    .join("")
+                }
+
+            </div>
+
+        `;
+
+}
+
+
+/*
+===========================================================
+ CAST VOTE
+===========================================================
+*/
+
+function castVote(answerId){
+
+    if(hasVoted)
+        return;
+
+
+    roomRef
+        .child(
+            "votes/" +
+            playerId
+        )
+        .set(answerId)
+        .then(() => {
+
+            hasVoted = true;
+
+            toast(
+                "Vote locked!"
+            );
+
+        });
+
+}
+
+
+/*
+===========================================================
+ HOST: CHECK VOTES
+===========================================================
+*/
+
+function allPlayersVoted(room){
+
+    const players =
+        Object.keys(
+            room.players || {}
+        );
+
+
+    const votes =
+        Object.keys(
+            room.votes || {}
+        );
+
+
+    return (
+        players.length > 0 &&
+        players.every(
+            id =>
+                votes.includes(id)
+        )
+    );
+
+}
+
+
+/*
+===========================================================
+ CALCULATE SCORES
+===========================================================
+*/
+
+function calculateScores(room){
+
+    const updates = {};
+
+
+    Object.entries(
+        room.players || {}
+    )
+    .forEach(
+        ([id,player]) => {
+
+            updates[
+                "players/" +
+                id +
+                "/score"
+            ] =
+                player.score || 0;
+
+        }
+    );
+
+
+    /*
+     * Correct-answer points.
+     */
+
+    Object.entries(
+        room.votes || {}
+    )
+    .forEach(
+        ([voterId,answerId]) => {
+
+            if(answerId === "truth"){
+
+                updates[
+                    "players/" +
+                    voterId +
+                    "/score"
+                ] += 1000;
+
+            }
+
+        }
+    );
+
+
+    /*
+     * Fooling points.
+     */
+
+    Object.entries(
+        room.votes || {}
+    )
+    .forEach(
+        ([voterId,answerId]) => {
+
+            if(
+                answerId !== "truth" &&
+                room.submissions &&
+                room.submissions[answerId]
+            ){
+
+                /*
+                 * Player gets 500 for fooling
+                 * someone.
+                 */
+
+                updates[
+                    "players/" +
+                    answerId +
+                    "/score"
+                ] += 500;
+
+            }
+
+        }
+    );
+
+
+    return updates;
+
+}
+
+
+/*
+===========================================================
+ HOST GAME ENGINE
+===========================================================
+*/
+
+function hostGameEngine(room){
+
+    if(!isHost)
+        return;
+
+
+    if(
+        room.status === "answering" &&
+        allPlayersSubmitted(room)
+    ){
+
+        roomRef.update({
+
+            status:
+                "voting",
+
+            votes:{}
+
+        });
+
+        return;
+
+    }
+
+
+    if(
+        room.status === "voting" &&
+        allPlayersVoted(room)
+    ){
+
+        const updates =
+            calculateScores(room);
+
+
+        updates.status =
+            "results";
+
+
+        roomRef.update(
+            updates
+        );
+
+    }
+
+}
+
+
+/*
+===========================================================
+ RESULTS
+===========================================================
+*/
+
+function renderResults(room){
+
+    show("results");
+
+
+    const players =
+        Object.entries(
+            room.players || {}
+        )
+        .sort(
+            ([,a],[,b]) =>
+                (b.score || 0) -
+                (a.score || 0)
+        );
+
+
+    $("resultsList")
+        .innerHTML =
+        players
+        .map(
+            ([id,player],index) => `
+
+                <div class="scoreRow">
+
+                    <b>
+                        ${index + 1}.
+                        ${escapeHTML(
+                            player.name
+                        )}
+                    </b>
+
+                    <span class="score">
+                        ${player.score || 0}
+                    </span>
+
+                </div>
+
+            `
+        )
+        .join("");
+
+
+    $("nextButton")
+        .classList
+        .toggle(
+            "hidden",
+            !isHost
+        );
+
+}
+
+
+/*
+===========================================================
+ NEXT ROUND
+===========================================================
+*/
+
+function nextRound(){
+
+    if(!isHost)
+        return;
+
+
+    const next =
+        (currentRoom.round || 0) + 1;
+
+
+    if(next > 5){
+
+        roomRef.update({
+
+            status:
+                "finished"
+
+        });
+
+        return;
+
+    }
+
+
+    const question =
+        QUESTIONS[
+            Math.floor(
+                Math.random() *
+                QUESTIONS.length
+            )
+        ];
+
+
+    roomRef.update({
+
+        status:
+            "answering",
+
+        round:
+            next,
+
+        question:{
+            text:
+                question.question,
+
+            truth:
+                question.truth,
+
+            lies:
+                question.lies
+        },
+
+        submissions:{},
+
+        votes:{}
+
+    });
+
+}
+
+
+/*
+===========================================================
+ FINISHED
+===========================================================
+*/
+
+function renderFinished(room){
+
+    show("end");
+
+
+    const players =
+        Object.entries(
+            room.players || {}
+        )
+        .sort(
+            ([,a],[,b]) =>
+                (b.score || 0) -
+                (a.score || 0)
+        );
+
+
+    if(players.length){
+
+        $("winnerText")
+            .textContent =
+            "🏆 " +
+            players[0][1].name +
+            " WINS!";
+
+    }
+
+
+    $("finalList")
+        .innerHTML =
+        players
+        .map(
+            ([id,player],index) => `
+
+                <div class="scoreRow">
+
+                    <b>
+                        ${index + 1}.
+                        ${escapeHTML(
+                            player.name
+                        )}
+                    </b>
+
+                    <span class="score">
+                        ${player.score || 0}
+                    </span>
+
+                </div>
+
+            `
+        )
+        .join("");
+
+}
+
+
+/*
+===========================================================
+ AUTOMATIC HOST STATE PROCESSING
+===========================================================
+*/
+
+setInterval(
+    () => {
+
+        if(
+            currentRoom &&
+            isHost
+        ){
+
+            hostGameEngine(
+                currentRoom
+            );
+
+        }
+
+    },
+    700
+);
+
+
+/*
+===========================================================
+ URL AUTO-JOIN
+===========================================================
+*/
+
+(function(){
+
+    const params =
+        new URLSearchParams(
+            location.search
+        );
+
+
+    const room =
+        params.get("room");
+
+
+    if(room){
+
+        $("joinCode")
+            .value =
+            room.toUpperCase();
+
+
+        showJoin();
+
+    }
+
+})();
+
+</script>
+
+</body>
+</html>
